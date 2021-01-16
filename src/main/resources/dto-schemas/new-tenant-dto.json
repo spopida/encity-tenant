@@ -1,0 +1,36 @@
+{
+  "$schema" : "http://json-schema.org/draft/2019-09/schema#",
+  "$id" : "http://encity.co.uk/dto-schemas/new-tenant-dto.json",
+  "title" : "Schema for New Tenant request DTOs",
+  "description" : "Used to validate incoming requests for new tenants by encity servers",
+
+  "definitions" : {
+    "contact" : {
+      "type" : "object",
+      "properties" : {
+        "firstName" : { "type" : "string" },
+        "lastname" : { "type" :"string" },
+        "emailAddress" : {
+          "type" : "string",
+          "format" : "email"
+        }
+      }
+    }
+  },
+
+  "properties" : {
+
+    "tariff" : {
+      "type": "string",
+      "enum": ["Free"],
+      "default" : "Free"
+    },
+
+    "authorisedContact" : { "$ref" :  "#/definitions/contact" },
+    "adminUser" : { "$ref" : "#/definitions/contact" },
+    "billingContact" : { "$ref" : "#/definitions/contact" }
+
+  },
+
+  "required" : ["authorisedContact", "adminUser"]
+}

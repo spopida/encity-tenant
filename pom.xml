@@ -41,6 +41,12 @@
 			<artifactId>mongodb-driver-sync</artifactId>
 			<version>${mongodb-driver-sync.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.everit.json</groupId>
+			<artifactId>org.everit.json.schema</artifactId>
+			<version>1.5.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
