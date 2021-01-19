@@ -1,6 +1,6 @@
 {
   "$schema" : "http://json-schema.org/draft/2019-09/schema#",
-  "$id" : "http://encity.co.uk/dto-schemas/new-tenant-dto.json",
+  "$id" : "http://encity.co.uk/dto-schemas/create-tenancy-command.json",
   "title" : "Schema for New Tenant request DTOs",
   "description" : "Used to validate incoming requests for new tenants by encity servers",
 

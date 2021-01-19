@@ -1,8 +1,10 @@
 package uk.co.encity.tenant;
 
 import static com.mongodb.client.model.Filters.eq;
+import static java.util.Objects.requireNonNull;
 
-import com.fasterxml.jackson.databind.jsonschema.JsonSerializableSchema;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -13,6 +15,7 @@ import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,29 +24,24 @@ import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
+import java.io.IOException;
+
 /**
  * A RESTful web controller that supports actions relating to Tenants.  A Tenant is an organisation with one or more
  * users that uses encity as an agent for the companies that it serves
  */
 @RestController
 public class TenantController {
-    /** TODO:
-     * This class is hard-wired to MongoDB.  Not the end of the world, but it would be better
-     * to abstract a TenantRepository, and inject a MongoDB implementation of TenantRepository into this
-     * controller.
-     */
 
     private static final String TENANT_COLLECTION = "tenant";
     private final Logger logger = Loggers.getLogger(getClass());
-    private final MongoClient mongoClient;
-    private final MongoDatabase db;
 
-    public TenantController(@Value("${mongodb.uri}") String mongodbURI, @Value("${tenant.db}") String dbName) {
+    private ITenancyRepository tenancyRepo;
+
+    public TenantController(@Autowired ITenancyRepository repo) {
         logger.info("Constructing " + this.getClass().getName());
 
-        // Set up a connection
-        this.mongoClient = MongoClients.create(mongodbURI);
-        this.db = this.mongoClient.getDatabase(dbName);
+        this.tenancyRepo = repo;
 
         logger.info("Construction of " + this.getClass().getName() + " is complete");
     }
@@ -53,37 +51,74 @@ public class TenantController {
      * @return  A Mono that wraps a ResponseEntity containing the response.  Possible
      *          response status codes are OK, INTERNAL_SERVER_ERROR, BAD_REQUEST
      */
-    @PostMapping("/tenants")
+    @PostMapping("/tenancies")
     public Mono<ResponseEntity<String>> createTenant(@RequestBody String body) {
-        final String newTenantDTOSchemaName = "dto-schemas/new-tenant-dto.json";
+        final String createTenancyCommandSchema = "command-schemas/create-tenancy-command.json";
 
-        logger.debug("Attempting to create a new tenant from request body:\n" + body);
+        logger.debug("Attempting to create a new tenancy from request body:\n" + body);
         ResponseEntity<String> response = null;
+        JSONObject command;
 
-        // TODO:
-        // - capture the body and check it against a JSON Schema Validator - possible 400 error
-        // - convert the body to a POJO (DTO)
-        // - check whether the tenancy already exists - if so, then client error (or internal error)
-        // - turn the POJO into an entity (aggregate) - add initial state (as part of a repeating group)
-        // - convert the entity to Bson / JSON
-        // - insert the entity in the datastore
-
+        // Validate the request body against the relevant JSON schema
         try {
-            JSONObject jsonSchema = new JSONObject(
-                new JSONTokener(getClass().getClassLoader().getResourceAsStream(newTenantDTOSchemaName)));
-            JSONObject jsonSubject = new JSONObject(new JSONTokener(body));
-
-            Schema schema = SchemaLoader.load(jsonSchema);
-            schema.validate(jsonSubject);
-            logger.debug("Incoming request body validates against DTO schema");
-
-            response = ResponseEntity.status(HttpStatus.OK).body("{ key: \"Hi Adrian\" }");
-
+            Schema schema = SchemaLoader.load(
+                    new JSONObject(
+                            new JSONTokener(requireNonNull(getClass().getClassLoader().getResourceAsStream(createTenancyCommandSchema)))
+                    )
+            );
+            command = new JSONObject(new JSONTokener(body));
+            schema.validate(command);
+            logger.debug("Incoming request body validates against command schema");
         } catch (ValidationException e) {
-            logger.warn("Incoming request body does NOT validate against DTO schema; potential API mis-use.");
+            logger.warn("Incoming request body does NOT validate against command schema; potential API mis-use!");
             response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return Mono.just(response);
         }
 
+        // Check whether the tenancy already exists - if so, then BAD_REQUEST (or let them update it..do that later)
+
+        if (this.tenancyRepo.tenancyExists("anyoldstring")) {
+            logger.debug("Rejecting request to create existing tenancy...[more details needed]");
+            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return Mono.just(response);
+        } else {
+            logger.debug("Tenancy does not exist - OK to create");
+        }
+
+        // TODO: Change this...get it from a header...but user is not logged in!
+        String userId = "anyolduser";
+
+        // De-serialise the command into an object
+        CreateTenancyCommand cmd = null;
+
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        // TODO: fix the user id - get it from a header!
+        module.addDeserializer(CreateTenancyCommand.class, new CreateTenancyCommandDeserializer().setUserId(userId));
+        mapper.registerModule(module);
+
+        try {
+            cmd = mapper.readValue(body, CreateTenancyCommand.class);
+            logger.debug("Create tenancy command de-serialised successfully");
+        } catch (IOException e) {
+            logger.error("Error de-serialising create tenancy command: " + e.getMessage());
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return Mono.just(response);
+        }
+
+        // Store the command (with any generated fields)
+        tenancyRepo.captureTenantCommand(TenancyCommand.TenancyTenantCommandType.CREATE_TENANCY, cmd);
+
+        // Create a tenancy event
+        TenancyCreatedEvent evt = new TenancyCreatedEvent(cmd);
+
+        // Record a tenancy event
+        tenancyRepo.captureEvent(Tenancy.TenancyEventType.TENANCY_CREATED, evt);
+
+        // Issue a notify authoriser command? (separate gateway?)
+        // Issue a create / update user (command) - NOT an actual user or event!!
+
+        response = ResponseEntity.status(HttpStatus.OK).body("{ key: \"Hi Adrian\" }");
         return Mono.just(response);
     }
 
@@ -95,7 +130,7 @@ public class TenantController {
      */
     @GetMapping("/tenant/{domain}")
     public Mono<ResponseEntity<String>> getTenant(@PathVariable String domain) {
-
+/*
         logger.debug("Attempting to GET tenant: " + domain);
 
         ResponseEntity<String> response = null;
@@ -121,7 +156,9 @@ public class TenantController {
                 response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
         }
-
+*/
+        ResponseEntity<String> response = null;
+        response = ResponseEntity.status(HttpStatus.OK).body("");
         return Mono.just(response);
     }
 }
