@@ -1,6 +1,9 @@
-package uk.co.encity.tenant;
+package uk.co.encity.tenancy;
 
 import java.time.Instant;
+
+import org.bson.codecs.pojo.annotations.BsonProperty;
+import org.bson.types.ObjectId;
 
 public abstract class TenancyCommand {
 
@@ -20,14 +23,19 @@ public abstract class TenancyCommand {
         STOP_TENANCY
     }
 
+    @BsonProperty("_id")
+    private ObjectId commandId;
+
     private Instant timeStamp;
     private String originatingUser;
 
     public TenancyCommand(String userId) {
+        this.commandId = new ObjectId();
         this.originatingUser = userId;
         this.timeStamp = Instant.now();
     }
 
+    public @BsonProperty("_id") ObjectId getCommandId() { return this.commandId; }
     public String getUserId() {
         return this.originatingUser;
     }

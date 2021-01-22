@@ -1,4 +1,4 @@
-package uk.co.encity.tenant;
+package uk.co.encity.tenancy;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -6,8 +6,10 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -21,7 +23,7 @@ public class MongoDBTenancyRepository implements ITenancyRepository {
     private final MongoClient mongoClient;
     private final MongoDatabase db;
 
-    public MongoDBTenancyRepository(@Value("${mongodb.uri}") String mongodbURI, @Value("${tenant.db}") String dbName) {
+    public MongoDBTenancyRepository(@Value("${mongodb.uri}") String mongodbURI, @Value("${tenancy.db}") String dbName) {
 
         ConnectionString connectionString = new ConnectionString(mongodbURI);
         CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
@@ -36,31 +38,59 @@ public class MongoDBTenancyRepository implements ITenancyRepository {
         this.db = this.mongoClient.getDatabase(dbName);
     }
 
+    /**
+     * Create an initial tenancy snapshot from a {@link CreateTenancyCommand} object.  Because
+     * this represents the creation event, we also create an identity
+     * @param evt the {@link TenancyCreatedEvent} that led to this initial snapshot
+     */
+    @Override
+    public void captureTenancySnapshot(TenancyCreatedEvent evt) {
+        String identity = null;
+
+        // Create an identity that includes immutable identity-related fields (just id and name in this case)
+        MongoCollection<Document> identities = db.getCollection("tenancy_identities", Document.class);
+
+        String name = evt.getDomain();
+        // TODO: Consider creating a POJO for this
+
+        Document doc = new Document();
+        ObjectId tenancyId = new ObjectId();
+        doc.append("_id", tenancyId);
+        doc.append("name", name);
+        identities.insertOne(doc);
+
+        // Create the snapshot
+        TenancySnapshot snapshot = new TenancySnapshot(evt, tenancyId);
+        MongoCollection<TenancySnapshot> tenancySnapshots = db.getCollection("tenancy_snapshots", TenancySnapshot.class);
+        tenancySnapshots.insertOne(snapshot);
+    }
+
+
     @Override
     public void captureTenantCommand(TenancyCommand.TenancyTenantCommandType commandType, TenancyCommand command) {
-        MongoCollection<TenancyCommand> commands = db.getCollection("TenancyCommand", TenancyCommand.class);
+        MongoCollection<TenancyCommand> commands = db.getCollection("tenancy_commands", TenancyCommand.class);
         commands.insertOne(command);
     }
 
     @Override
     public void captureProviderCommand(TenancyCommand.TenancyProviderCommandType commandType, JSONObject command) {
-
     }
 
     @Override
-    public void captureEvent(Tenancy.TenancyEventType eventType, TenancyCreatedEvent event) {
-        MongoCollection<TenancyEvent> events = db.getCollection("TenancyEvent", TenancyEvent.class);
+    public void captureEvent(TenancySnapshot.TenancyEventType eventType, TenancyCreatedEvent event) {
+        MongoCollection<TenancyEvent> events = db.getCollection("tenancy_events", TenancyEvent.class);
         events.insertOne(event);
     }
 
     @Override
-    public Tenancy getTenancy(String id) {
+    public TenancySnapshot getTenancy(String id) {
 
         return null;
     }
 
     @Override
     public boolean tenancyExists( String id) {
+        // Look in the identities collection...the id passed in needs to derived from the command
         return false;
 
         // Check the entity / event collection (not the commands!)

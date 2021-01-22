@@ -1,7 +1,6 @@
-package uk.co.encity.tenant;
+package uk.co.encity.tenancy;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -35,26 +34,26 @@ public class CreateTenancyCommandDeserializer extends StdDeserializer<CreateTena
 
         JsonNode node = jp.getCodec().readTree(jp);
         String tariff = node.get("tariff").asText();
-        CreateTenancyCommand.CTCContact authContact = this.deserializeContact(node.get("authorisedContact"));
-        CreateTenancyCommand.CTCContact adminUsrContact = this.deserializeContact(node.get("adminUser"));
+        TenancyContact authContact = this.deserializeContact(node.get("authorisedContact"));
+        TenancyContact adminUsrContact = this.deserializeContact(node.get("adminUser"));
 
-        CreateTenancyCommand.CTCContact billingContact = null;
+        TenancyContact billingContact = null;
 
         if (node.has("billingContact")) {
             billingContact = this.deserializeContact(node.get("billingContact"));
         } else {
-            billingContact = new CreateTenancyCommand.CTCContact("","","");
+            billingContact = new TenancyContact("","","");
         }
 
         return new CreateTenancyCommand(userId, tariff, authContact, adminUsrContact, billingContact);
     }
 
-    private CreateTenancyCommand.CTCContact deserializeContact(JsonNode node) {
+    private TenancyContact deserializeContact(JsonNode node) {
         String first = node.get("firstName").asText();
         String last = node.get("lastName").asText();
         String email = node.get("emailAddress").asText();
 
-        return new CreateTenancyCommand.CTCContact(first, last, email);
+        return new TenancyContact(first, last, email);
     }
 
 }

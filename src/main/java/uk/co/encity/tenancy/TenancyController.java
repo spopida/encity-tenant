@@ -1,22 +1,16 @@
-package uk.co.encity.tenant;
+package uk.co.encity.tenancy;
 
 import static com.mongodb.client.model.Filters.eq;
 import static java.util.Objects.requireNonNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,14 +25,14 @@ import java.io.IOException;
  * users that uses encity as an agent for the companies that it serves
  */
 @RestController
-public class TenantController {
+public class TenancyController {
 
-    private static final String TENANT_COLLECTION = "tenant";
+    private static final String TENANT_COLLECTION = "tenancy";
     private final Logger logger = Loggers.getLogger(getClass());
 
     private ITenancyRepository tenancyRepo;
 
-    public TenantController(@Autowired ITenancyRepository repo) {
+    public TenancyController(@Autowired ITenancyRepository repo) {
         logger.info("Constructing " + this.getClass().getName());
 
         this.tenancyRepo = repo;
@@ -47,7 +41,7 @@ public class TenantController {
     }
 
     /**
-     * Attempt to create a new resource in the tenants collection
+     * Attempt to create a new resource in the tenancies collection
      * @return  A Mono that wraps a ResponseEntity containing the response.  Possible
      *          response status codes are OK, INTERNAL_SERVER_ERROR, BAD_REQUEST
      */
@@ -56,17 +50,17 @@ public class TenantController {
         final String createTenancyCommandSchema = "command-schemas/create-tenancy-command.json";
 
         logger.debug("Attempting to create a new tenancy from request body:\n" + body);
-        ResponseEntity<String> response = null;
-        JSONObject command;
 
-        // Validate the request body against the relevant JSON schema
+        ResponseEntity<String> response = null;
+
+        // 1. Validate the request body against the relevant JSON schema
         try {
             Schema schema = SchemaLoader.load(
                     new JSONObject(
                             new JSONTokener(requireNonNull(getClass().getClassLoader().getResourceAsStream(createTenancyCommandSchema)))
                     )
             );
-            command = new JSONObject(new JSONTokener(body));
+            JSONObject command = new JSONObject(new JSONTokener(body));
             schema.validate(command);
             logger.debug("Incoming request body validates against command schema");
         } catch (ValidationException e) {
@@ -75,7 +69,7 @@ public class TenantController {
             return Mono.just(response);
         }
 
-        // Check whether the tenancy already exists - if so, then BAD_REQUEST (or let them update it..do that later)
+        // 2. Check whether the tenancy already exists - if so, then BAD_REQUEST (or let them update it..do that later)
 
         if (this.tenancyRepo.tenancyExists("anyoldstring")) {
             logger.debug("Rejecting request to create existing tenancy...[more details needed]");
@@ -88,7 +82,7 @@ public class TenantController {
         // TODO: Change this...get it from a header...but user is not logged in!
         String userId = "anyolduser";
 
-        // De-serialise the command into an object
+        // 3. De-serialise the command into an object and store it
         CreateTenancyCommand cmd = null;
 
         ObjectMapper mapper = new ObjectMapper();
@@ -105,33 +99,45 @@ public class TenantController {
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             return Mono.just(response);
         }
-
-        // Store the command (with any generated fields)
         tenancyRepo.captureTenantCommand(TenancyCommand.TenancyTenantCommandType.CREATE_TENANCY, cmd);
 
-        // Create a tenancy event
+        // 4. Create the relevant events - in this case just a TenancyCreatedEvent
         TenancyCreatedEvent evt = new TenancyCreatedEvent(cmd);
+        tenancyRepo.captureEvent(TenancySnapshot.TenancyEventType.TENANCY_CREATED, evt);
 
-        // Record a tenancy event
-        tenancyRepo.captureEvent(Tenancy.TenancyEventType.TENANCY_CREATED, evt);
+        // 5. Create an initial snapshot for the tenancy
+        tenancyRepo.captureTenancySnapshot(evt);
 
-        // Issue a notify authoriser command? (separate gateway?)
-        // Issue a create / update user (command) - NOT an actual user or event!!
+        /**
+         * 6. Notify the authoriser
+         *
+         * Send a command to the notification service to notify the authoriser and request confirmation of
+         * the tenancy.  Confirmation will come back to this service (as a PUT?) and if successful, will
+         * trigger the creation of an admin user.  Interesting issue: how will we know which admin user to
+         * create?  Answer - by going back to the original command...this means we need to know the id of the command.
+         * It will have to be retained during the notification workflow (e.g. in the confirm link)
+         *
+         * --- NO DON'T DO THAT ! --- DO THIS INSTEAD: ---
+         * Publish the tenancy created event (and it needs to include the originating command id).  That
+         * way, anyone can pick it up and do what they want.  A notification service will subscribe to this
+         * event and send an email with a confirm link which will do a PUT back to this service
+         */
 
-        response = ResponseEntity.status(HttpStatus.OK).body("{ key: \"Hi Adrian\" }");
+        // Return a URL in the Location header - this will have to contain a resource id - base64URL of hex id
+        response = ResponseEntity.status(HttpStatus.CREATED).body("{ key: \"Hi Adrian\" }");
         return Mono.just(response);
     }
 
     /**
-     * Attempt to get tenant info.  A tenant is identified by their internet domain.
+     * Attempt to get tenancy info.  A tenancy is identified by their internet domain.
      * @param domain the internet domain that identifies the tenancy
      * @return  A Mono that wraps a ResponseEntity containing the response.  Possible
      *          response status codes are INTERNAL_SERVER_ERROR, OK, and NOT_FOUND.
      */
-    @GetMapping("/tenant/{domain}")
+    @GetMapping("/tenancy/{domain}")
     public Mono<ResponseEntity<String>> getTenant(@PathVariable String domain) {
 /*
-        logger.debug("Attempting to GET tenant: " + domain);
+        logger.debug("Attempting to GET tenancy: " + domain);
 
         ResponseEntity<String> response = null;
         MongoCollection<Document> tenantCollection = null;
@@ -144,15 +150,15 @@ public class TenantController {
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        // Now get the tenant; if it's found, then return it in the body (200), else it's a 404
+        // Now get the tenancy; if it's found, then return it in the body (200), else it's a 404
         if (tenantCollection != null) {
             Document found = tenantCollection.find(eq("domain", domain)).first();
 
             if (found != null) {
-                logger.debug("Found tenant: " + domain );
+                logger.debug("Found tenancy: " + domain );
                 response = ResponseEntity.status(HttpStatus.OK).body(found.toJson());
             } else {
-                logger.debug("Could not find tenant: " + domain);
+                logger.debug("Could not find tenancy: " + domain);
                 response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
         }

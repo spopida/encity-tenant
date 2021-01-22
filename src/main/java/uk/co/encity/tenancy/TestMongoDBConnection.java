@@ -1,4 +1,4 @@
-package uk.co.encity.tenant;
+package uk.co.encity.tenancy;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
