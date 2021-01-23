@@ -1,4 +1,4 @@
-package uk.co.encity.tenancy;
+package uk.co.encity.tenancy.service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

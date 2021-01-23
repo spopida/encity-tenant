@@ -1,4 +1,4 @@
-package uk.co.encity.tenancy;
+package uk.co.encity.tenancy.service;
 
 import static com.mongodb.client.model.Filters.eq;
 import static java.util.Objects.requireNonNull;
@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
+import uk.co.encity.tenancy.commands.CreateTenancyCommand;
+import uk.co.encity.tenancy.commands.CreateTenancyCommandDeserializer;
+import uk.co.encity.tenancy.commands.TenancyCommand;
+import uk.co.encity.tenancy.events.TenancyCreatedEvent;
+import uk.co.encity.tenancy.events.TenancyEventType;
 
 import java.io.IOException;
 
@@ -103,7 +108,7 @@ public class TenancyController {
 
         // 4. Create the relevant events - in this case just a TenancyCreatedEvent
         TenancyCreatedEvent evt = new TenancyCreatedEvent(cmd);
-        tenancyRepo.captureEvent(TenancySnapshot.TenancyEventType.TENANCY_CREATED, evt);
+        tenancyRepo.captureEvent(TenancyEventType.TENANCY_CREATED, evt);
 
         // 5. Create an initial snapshot for the tenancy
         tenancyRepo.captureTenancySnapshot(evt);

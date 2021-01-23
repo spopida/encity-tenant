@@ -1,4 +1,6 @@
-package uk.co.encity.tenancy;
+package uk.co.encity.tenancy.commands;
+
+import uk.co.encity.tenancy.components.TenancyContact;
 
 public class CreateTenancyCommand extends TenancyCommand {
 

@@ -1,4 +1,4 @@
-package uk.co.encity.tenancy;
+package uk.co.encity.tenancy.components;
 
 public class TenancyContact {
     private String firstName;

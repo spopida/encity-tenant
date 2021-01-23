@@ -1,4 +1,4 @@
-package uk.co.encity.tenancy;
+package uk.co.encity.tenancy.service.repositories;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -13,6 +13,13 @@ import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.co.encity.tenancy.commands.CreateTenancyCommand;
+import uk.co.encity.tenancy.commands.TenancyCommand;
+import uk.co.encity.tenancy.events.TenancyCreatedEvent;
+import uk.co.encity.tenancy.events.TenancyEvent;
+import uk.co.encity.tenancy.events.TenancyEventType;
+import uk.co.encity.tenancy.service.ITenancyRepository;
+import uk.co.encity.tenancy.snapshot.TenancySnapshot;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
@@ -77,7 +84,7 @@ public class MongoDBTenancyRepository implements ITenancyRepository {
     }
 
     @Override
-    public void captureEvent(TenancySnapshot.TenancyEventType eventType, TenancyCreatedEvent event) {
+    public void captureEvent(TenancyEventType eventType, TenancyCreatedEvent event) {
         MongoCollection<TenancyEvent> events = db.getCollection("tenancy_events", TenancyEvent.class);
         events.insertOne(event);
     }

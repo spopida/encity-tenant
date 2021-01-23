@@ -1,46 +1,15 @@
-package uk.co.encity.tenancy;
+package uk.co.encity.tenancy.snapshot;
 
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
+import uk.co.encity.tenancy.components.TenancyContact;
+import uk.co.encity.tenancy.entity.TenancyProviderStatus;
+import uk.co.encity.tenancy.entity.TenancyTenantStatus;
+import uk.co.encity.tenancy.events.TenancyCreatedEvent;
 
 import java.time.Instant;
 
 public class TenancySnapshot {
-
-    // All the events that may have occurred on a Tenancy (as a result of commands)
-    enum TenancyEventType {
-        TENANCY_CREATED,
-        TENANCY_AUTHORIZER_NOTIFIED,
-        TENANCY_UPDATED,
-        TENANCY_CLOSED,
-        TENANCY_CONFIRMED,
-        TENANCY_CLOSURE_CANCELLED,
-        TENANCY_SUSPENDED,
-        TENANCY_RELEASED,
-        TENANCY_STOPPED
-    }
-
-    // The statuses of a Tenancy that a Tenant controls
-    enum TenancyTenantStatus {
-        UNCONFIRMED,
-        CONFIRMED,
-        PENDING_CLOSURE,
-        CLOSED
-    }
-
-    // The statuses of a Tenancy that the Provider controls
-    enum TenancyProviderStatus {
-        ACTIVE,
-        SUSPENDED,
-        STOPPED
-    }
-
-    // The derived overall availability status of a Tenancy
-    enum TenancyAvailabilityStatus {
-        ENDED,
-        DORMANT,
-        OPERATIONAL
-    }
 
     @BsonProperty("_id")
     private ObjectId snapshotId;
@@ -55,8 +24,8 @@ public class TenancySnapshot {
     private String tariff;
     private TenancyContact authorisedContact;
     private TenancyContact billingContact;
-    private TenancySnapshot.TenancyTenantStatus tenantStatus;
-    private TenancySnapshot.TenancyProviderStatus providerStatus;
+    private TenancyTenantStatus tenantStatus;
+    private TenancyProviderStatus providerStatus;
 
     public TenancySnapshot(TenancyCreatedEvent evt, ObjectId tenancyId) {
         this.snapshotId = new ObjectId();
@@ -67,8 +36,8 @@ public class TenancySnapshot {
         this.tariff = evt.getTariff();
         this.authorisedContact = evt.getAuthorisedContact();
         this.billingContact = evt.getBillingContact();
-        this.tenantStatus = TenancySnapshot.TenancyTenantStatus.UNCONFIRMED;
-        this.providerStatus = TenancySnapshot.TenancyProviderStatus.ACTIVE;
+        this.tenantStatus = TenancyTenantStatus.UNCONFIRMED;
+        this.providerStatus = TenancyProviderStatus.ACTIVE;
     }
 
     public @BsonProperty("_id") ObjectId getSnapshotId() { return this.snapshotId; }
@@ -80,7 +49,7 @@ public class TenancySnapshot {
     public String getTariff() { return this.tariff; }
     public TenancyContact getAuthorisedContact() { return this.authorisedContact; }
     public TenancyContact getBillingContact() { return this.billingContact; }
-    public TenancySnapshot.TenancyTenantStatus getTenantStatus() { return this.tenantStatus; }
-    public TenancySnapshot.TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
+    public TenancyTenantStatus getTenantStatus() { return this.tenantStatus; }
+    public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
 
 }

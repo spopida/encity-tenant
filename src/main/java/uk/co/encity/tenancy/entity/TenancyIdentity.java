@@ -1,4 +1,4 @@
-package uk.co.encity.tenancy;
+package uk.co.encity.tenancy.entity;
 
 import org.bson.types.ObjectId;
 

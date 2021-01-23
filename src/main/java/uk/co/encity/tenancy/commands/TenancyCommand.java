@@ -1,4 +1,4 @@
-package uk.co.encity.tenancy;
+package uk.co.encity.tenancy.commands;
 
 import java.time.Instant;
 
@@ -8,7 +8,7 @@ import org.bson.types.ObjectId;
 public abstract class TenancyCommand {
 
     // Defines the commands that a Tenant may perform on a Tenancy
-    enum TenancyTenantCommandType {
+    public enum TenancyTenantCommandType {
         CREATE_TENANCY,
         UPDATE_TENANCY,
         CLOSE_TENANCY,
@@ -17,7 +17,7 @@ public abstract class TenancyCommand {
     }
 
     // Defines the commands that the Provider may perform on a Tenancy
-    enum TenancyProviderCommandType {
+    public enum TenancyProviderCommandType {
         SUSPEND_TENANCY,
         RELEASE_TENANCY,
         STOP_TENANCY
