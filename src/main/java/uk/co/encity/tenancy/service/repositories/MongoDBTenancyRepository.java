@@ -7,6 +7,10 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.bson.UuidRepresentation;
+import org.bson.codecs.UuidCodec;
+import org.bson.codecs.UuidCodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
@@ -29,16 +33,19 @@ public class MongoDBTenancyRepository implements ITenancyRepository {
 
     private final MongoClient mongoClient;
     private final MongoDatabase db;
+    private final CodecRegistry codecRegistry;
 
     public MongoDBTenancyRepository(@Value("${mongodb.uri}") String mongodbURI, @Value("${tenancy.db}") String dbName) {
 
         ConnectionString connectionString = new ConnectionString(mongodbURI);
         CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
-        CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
+        this.codecRegistry = fromRegistries(
+                CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
+                MongoClientSettings.getDefaultCodecRegistry(),
                 pojoCodecRegistry);
         MongoClientSettings clientSettings = MongoClientSettings.builder()
                 .applyConnectionString(connectionString)
-                .codecRegistry(codecRegistry)
+                .codecRegistry(this.codecRegistry)
                 .build();
 
         this.mongoClient = MongoClients.create(clientSettings);

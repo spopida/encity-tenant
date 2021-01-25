@@ -133,6 +133,16 @@ public class TenancyController {
         return Mono.just(response);
     }
 
+    /*
+    @GetMapping("/tenancy/{id}")
+    public Mono<ResponseEntity<String>> getUnconfirmedTenancy(@PathVariable String tenancyId, @RequestParam("uuid") String confirmUUID) {
+        // Check that tenancy exists, is not yet confirmed, and the confirmation token has not expired.  If any
+        // of these checks fail, then a 4xx should be returned
+
+        // If all the above checks pass, then
+    }
+    */
+
     /**
      * Attempt to get tenancy info.  A tenancy is identified by their internet domain.
      * @param domain the internet domain that identifies the tenancy
@@ -140,7 +150,7 @@ public class TenancyController {
      *          response status codes are INTERNAL_SERVER_ERROR, OK, and NOT_FOUND.
      */
     @GetMapping("/tenancy/{domain}")
-    public Mono<ResponseEntity<String>> getTenant(@PathVariable String domain) {
+    public Mono<ResponseEntity<String>> getTenancy(@PathVariable String domain) {
 /*
         logger.debug("Attempting to GET tenancy: " + domain);
 
