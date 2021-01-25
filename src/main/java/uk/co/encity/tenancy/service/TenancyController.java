@@ -10,6 +10,8 @@ import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import uk.co.encity.tenancy.commands.CreateTenancyCommandDeserializer;
 import uk.co.encity.tenancy.commands.TenancyCommand;
 import uk.co.encity.tenancy.events.TenancyCreatedEvent;
 import uk.co.encity.tenancy.events.TenancyEventType;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.io.IOException;
 
@@ -32,15 +35,21 @@ import java.io.IOException;
 @RestController
 public class TenancyController {
 
+    static final String topicExchangeName = "encity-exchange";
+
     private static final String TENANT_COLLECTION = "tenancy";
     private final Logger logger = Loggers.getLogger(getClass());
 
     private ITenancyRepository tenancyRepo;
 
-    public TenancyController(@Autowired ITenancyRepository repo) {
+    private RabbitTemplate rabbitTemplate;
+
+    public TenancyController(@Autowired ITenancyRepository repo, @Autowired RabbitTemplate rabbitTmpl) {
         logger.info("Constructing " + this.getClass().getName());
 
         this.tenancyRepo = repo;
+        this.rabbitTemplate = rabbitTmpl;
+        this.rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
 
         logger.info("Construction of " + this.getClass().getName() + " is complete");
     }
@@ -113,20 +122,10 @@ public class TenancyController {
         // 5. Create an initial snapshot for the tenancy
         tenancyRepo.captureTenancySnapshot(evt);
 
-        /**
-         * 6. Notify the authoriser
-         *
-         * Send a command to the notification service to notify the authoriser and request confirmation of
-         * the tenancy.  Confirmation will come back to this service (as a PUT?) and if successful, will
-         * trigger the creation of an admin user.  Interesting issue: how will we know which admin user to
-         * create?  Answer - by going back to the original command...this means we need to know the id of the command.
-         * It will have to be retained during the notification workflow (e.g. in the confirm link)
-         *
-         * --- NO DON'T DO THAT ! --- DO THIS INSTEAD: ---
-         * Publish the tenancy created event (and it needs to include the originating command id).  That
-         * way, anyone can pick it up and do what they want.  A notification service will subscribe to this
-         * event and send an email with a confirm link which will do a PUT back to this service
-         */
+        // 6. Publish an event
+        logger.debug("Sending message...");
+        rabbitTemplate.convertAndSend(topicExchangeName, "encity.tenancy.created", body);
+
 
         // Return a URL in the Location header - this will have to contain a resource id - base64URL of hex id
         response = ResponseEntity.status(HttpStatus.CREATED).body("{ key: \"Hi Adrian\" }");

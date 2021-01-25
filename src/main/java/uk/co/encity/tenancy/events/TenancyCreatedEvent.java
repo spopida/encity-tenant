@@ -14,7 +14,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-// TODO: Create an abstract parent class with common attributes / methods
 public class TenancyCreatedEvent extends TenancyEvent {
 
     private final Logger logger = Loggers.getLogger(getClass());
