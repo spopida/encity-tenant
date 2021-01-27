@@ -23,6 +23,7 @@ import uk.co.encity.tenancy.commands.CreateTenancyCommand;
 import uk.co.encity.tenancy.commands.CreateTenancyCommandDeserializer;
 import uk.co.encity.tenancy.commands.TenancyCommand;
 import uk.co.encity.tenancy.events.TenancyCreatedEvent;
+import uk.co.encity.tenancy.events.TenancyCreatedEventSerializer;
 import uk.co.encity.tenancy.events.TenancyEventType;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
@@ -124,8 +125,15 @@ public class TenancyController {
 
         // 6. Publish an event
         logger.debug("Sending message...");
-        rabbitTemplate.convertAndSend(topicExchangeName, "encity.tenancy.created", body);
-
+        module.addSerializer(TenancyCreatedEvent.class, new TenancyCreatedEventSerializer());
+        mapper.registerModule(module);
+        String jsonEvt;
+        try {
+            jsonEvt = mapper.writeValueAsString(evt);
+            rabbitTemplate.convertAndSend(topicExchangeName, "encity.tenancy.created", jsonEvt);
+        } catch (IOException e) {
+            logger.error("Error publishing create tenancy event: " + e.getMessage());
+        }
 
         // Return a URL in the Location header - this will have to contain a resource id - base64URL of hex id
         response = ResponseEntity.status(HttpStatus.CREATED).body("{ key: \"Hi Adrian\" }");
