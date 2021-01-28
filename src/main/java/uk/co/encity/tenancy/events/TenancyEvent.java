@@ -15,6 +15,7 @@ public abstract class TenancyEvent {
     private ObjectId eventId;
 
     private TenancyEventType eventType;
+    private ObjectId tenancyId;
     private String domain;
     private String originatingUserId;
     private Instant eventDateTime;
@@ -23,9 +24,17 @@ public abstract class TenancyEvent {
     private int tenancyVersionNumber;
     private ObjectId commandId;
 
-    public TenancyEvent(TenancyEventType eventType, int version, ObjectId commandId, String emailAddr, String userId) {
+    public TenancyEvent(
+        TenancyEventType eventType,
+        ObjectId tenancyId,
+        int version,
+        ObjectId commandId,
+        String emailAddr,
+        String userId)
+    {
         this.eventId = new ObjectId();
         this.eventType = eventType;
+        this.tenancyId = tenancyId;
         this.commandId = commandId;
         this.eventDateTime = Instant.now();
         this.originatingUserId = userId;
@@ -38,6 +47,7 @@ public abstract class TenancyEvent {
 
     public @BsonProperty("_id") ObjectId getEventId() { return this.eventId; };
     public TenancyEventType getEventType() { return this.eventType; }
+    public ObjectId getTenancyId() { return this.tenancyId; }
     public String getDomain() { return this.domain; }
     public ObjectId getCommandId() { return this.commandId; }
     public String getUserId() { return this.originatingUserId; }

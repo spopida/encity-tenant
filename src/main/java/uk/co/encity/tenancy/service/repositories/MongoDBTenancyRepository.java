@@ -59,6 +59,7 @@ public class MongoDBTenancyRepository implements ITenancyRepository {
      */
     @Override
     public void captureTenancySnapshot(TenancyCreatedEvent evt) {
+        /*
         String identity = null;
 
         // Create an identity that includes immutable identity-related fields (just id and name in this case)
@@ -66,15 +67,16 @@ public class MongoDBTenancyRepository implements ITenancyRepository {
 
         String name = evt.getDomain();
         // TODO: Consider creating a POJO for this
-
         Document doc = new Document();
         ObjectId tenancyId = new ObjectId();
         doc.append("_id", tenancyId);
         doc.append("name", name);
         identities.insertOne(doc);
 
+         */
+
         // Create the snapshot
-        TenancySnapshot snapshot = new TenancySnapshot(evt, tenancyId);
+        TenancySnapshot snapshot = new TenancySnapshot(evt);
         MongoCollection<TenancySnapshot> tenancySnapshots = db.getCollection("tenancy_snapshots", TenancySnapshot.class);
         tenancySnapshots.insertOne(snapshot);
     }

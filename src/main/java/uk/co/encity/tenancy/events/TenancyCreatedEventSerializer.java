@@ -18,17 +18,20 @@ public class TenancyCreatedEventSerializer extends StdSerializer<TenancyCreatedE
     }
 
     @Override
-    public void serialize(TenancyCreatedEvent value, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(TenancyCreatedEvent value, JsonGenerator jGen, SerializerProvider provider)
       throws IOException, JsonProcessingException {
 
-        jgen.writeStartObject();
-        jgen.writeStringField("tariff", value.getTariff());
-        jgen.writeFieldName("authorisedContact");
-        jgen.writeObject(value.getAuthorisedContact());
-        jgen.writeFieldName("confirmUUID");
-        jgen.writeObject(value.getConfirmUUID());
-        jgen.writeFieldName("expiryTime");
-        jgen.writeObject(value.getExpiryTime());
-        jgen.writeEndObject();
+        jGen.writeStartObject();
+
+        jGen.writeFieldName("tenancyId");
+        jGen.writeString(value.getTenancyId().toHexString());
+        jGen.writeStringField("tariff", value.getTariff());
+        jGen.writeFieldName("authorisedContact");
+        jGen.writeObject(value.getAuthorisedContact());
+        jGen.writeFieldName("confirmUUID");
+        jGen.writeObject(value.getConfirmUUID());
+        jGen.writeFieldName("expiryTime");
+        jGen.writeObject(value.getExpiryTime());
+        jGen.writeEndObject();
     }
 }

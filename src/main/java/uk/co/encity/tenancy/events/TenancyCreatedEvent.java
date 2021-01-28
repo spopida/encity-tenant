@@ -26,7 +26,13 @@ public class TenancyCreatedEvent extends TenancyEvent {
     private Instant creationTime;
 
     public TenancyCreatedEvent(CreateTenancyCommand cmd) {
-        super(TenancyEventType.TENANCY_CREATED, 1, cmd.getCommandId(), cmd.getAuthorisedContact().getEmailAddress(), cmd.getUserId());
+        super(
+            TenancyEventType.TENANCY_CREATED,
+            new ObjectId(),
+            1,
+            cmd.getCommandId(),
+            cmd.getAuthorisedContact().getEmailAddress(),
+            cmd.getUserId());
 
         this.tariff = cmd.getTariff();
         this.authorisedContact = cmd.getAuthorisedContact();

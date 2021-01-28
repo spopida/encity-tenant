@@ -30,7 +30,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import java.io.IOException;
 
 /**
- * A RESTful web controller that supports actions relating to Tenants.  A Tenant is an organisation with one or more
+ * A RESTful web controller that supports actions relating to Tenancies.  A Tenancy is an organisation with one or more
  * users that uses encity as an agent for the companies that it serves
  */
 @RestController

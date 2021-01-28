@@ -27,9 +27,9 @@ public class TenancySnapshot {
     private TenancyTenantStatus tenantStatus;
     private TenancyProviderStatus providerStatus;
 
-    public TenancySnapshot(TenancyCreatedEvent evt, ObjectId tenancyId) {
+    public TenancySnapshot(TenancyCreatedEvent evt) {
         this.snapshotId = new ObjectId();
-        this.tenancyId = tenancyId;
+        this.tenancyId = evt.getTenancyId();
         this.tenancyName = evt.getDomain();
         this.lastUpdate = evt.getEventDateTime();
         this.fromVersion = this.toVersion = 1;
