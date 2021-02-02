@@ -33,8 +33,7 @@ public class TenancyCreatedEvent extends TenancyEvent {
             new ObjectId(),
             1,
             cmd.getCommandId(),
-            cmd.getAuthorisedContact().getEmailAddress(),
-            cmd.getUserId());
+            cmd.getAuthorisedContact().getEmailAddress());
 
         this.tariff = cmd.getTariff();
         this.authorisedContact = cmd.getAuthorisedContact();

@@ -27,19 +27,13 @@ public abstract class TenancyCommand {
     private ObjectId commandId;
 
     private Instant timeStamp;
-    private String originatingUser;
 
-    public TenancyCommand(String userId) {
+    public TenancyCommand() {
         this.commandId = new ObjectId();
-        this.originatingUser = userId;
         this.timeStamp = Instant.now();
     }
 
     public @BsonProperty("_id") ObjectId getCommandId() { return this.commandId; }
-    public String getUserId() {
-        return this.originatingUser;
-    }
-
     public Instant getTimeStamp() {
         return this.timeStamp;
     }

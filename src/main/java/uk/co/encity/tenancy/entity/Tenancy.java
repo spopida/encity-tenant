@@ -2,8 +2,13 @@ package uk.co.encity.tenancy.entity;
 
 import io.openapitools.jackson.dataformat.hal.HALLink;
 import io.openapitools.jackson.dataformat.hal.annotation.Link;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 import uk.co.encity.tenancy.components.TenancyContact;
 import uk.co.encity.tenancy.events.TenancyCreatedEvent;
 import uk.co.encity.tenancy.events.TenancyEvent;
@@ -14,6 +19,11 @@ import java.time.Instant;
 import java.util.UUID;
 
 public class Tenancy {
+
+    /**
+     * The {@link Logger} for this class
+     */
+    private final Logger logger = Loggers.getLogger(getClass());
 
     private ObjectId tenancyId;
     private String tenancyName;
@@ -67,4 +77,28 @@ public class Tenancy {
         this.authorisedContact = authContact;
     }
 
+    public TenancyView getView() throws TenancyException {
+
+        // Make sure to use getters, not instance vars (there could be logic in them)
+
+        TenancyView view = new TenancyView();
+
+        try {
+            byte[] decodedHex = Hex.decodeHex(this.getHexTenancyId());
+            view.id = Base64.encodeBase64URLSafeString(decodedHex);
+        } catch (DecoderException e) {
+            logger.error("Unable to convert tenancy id to base 64; hex id is: " + this.getHexTenancyId());
+            throw new TenancyException(e.getMessage());
+        }
+
+        view.name = this.getName();
+        view.version = this.getVersion();
+        view.lastUpdate = this.getLastUpdate().toString(); // TODO: check format, zone, etc
+        view.tariff = this.getTariff();
+        view.authorisedContact = this.getAuthorisedContact();
+        view.billingContact = this.getBillingContact();
+        view.tenantStatus = this.getTenantStatus().toString();
+
+        return view;
+    }
 }

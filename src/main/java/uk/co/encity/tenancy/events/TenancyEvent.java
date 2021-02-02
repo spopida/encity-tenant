@@ -19,7 +19,6 @@ public abstract class TenancyEvent {
     private TenancyEventType eventType;
     private ObjectId tenancyId;
     private String domain;
-    private String originatingUserId;
     private Instant eventDateTime;
     private TenancyTenantStatus tenantStatus;
     private TenancyProviderStatus providerStatus;
@@ -35,15 +34,13 @@ public abstract class TenancyEvent {
         ObjectId tenancyId,
         int version,
         ObjectId commandId,
-        String emailAddr,
-        String userId)
+        String emailAddr)
     {
         this.eventId = new ObjectId();
         this.eventType = eventType;
         this.tenancyId = tenancyId;
         this.commandId = commandId;
         this.eventDateTime = Instant.now();
-        this.originatingUserId = userId;
         String parts[] = emailAddr.split("@");
         this.domain = parts[1];
         this.tenantStatus = TenancyTenantStatus.UNCONFIRMED;
@@ -56,7 +53,6 @@ public abstract class TenancyEvent {
     public ObjectId getTenancyId() { return this.tenancyId; }
     public String getDomain() { return this.domain; }
     public ObjectId getCommandId() { return this.commandId; }
-    public String getUserId() { return this.originatingUserId; }
     public Instant getEventDateTime() { return this.eventDateTime; }
     public TenancyTenantStatus getTenantStatus() { return this.tenantStatus; }
     public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }

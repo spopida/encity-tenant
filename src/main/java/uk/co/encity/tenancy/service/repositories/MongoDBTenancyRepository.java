@@ -148,16 +148,17 @@ public class MongoDBTenancyRepository implements ITenancyRepository {
     public TenancySnapshot getLatestSnapshot(String id) {
         ObjectId targetId = new ObjectId(id);
         MongoCollection<TenancySnapshot> snapshots = db.getCollection("tenancy_snapshots").withDocumentClass(TenancySnapshot.class);
-        TenancySnapshot snap = snapshots.find(eq("tenancyId", new ObjectId(id))).sort(new BasicDBObject("lastUpdate", -1)).first();
+        TenancySnapshot snap = snapshots.find(eq("tenancyId", targetId)).sort(new BasicDBObject("lastUpdate", -1)).first();
 
         return snap;
     }
 
     @Override
-    public boolean tenancyExists( String id) {
-        // Look in the identities collection...the id passed in needs to derived from the command
-        return false;
-
-        // Check the entity / event collection (not the commands!)
+    public boolean tenancyExists(String domain) {
+        // Rely on the fact that there should always be at least one snapshot.  Note that this method doesn't
+        // care about the status of a tenancy
+        MongoCollection<TenancySnapshot> snapshots = db.getCollection("tenancy_snapshots").withDocumentClass(TenancySnapshot.class);
+        TenancySnapshot snap = snapshots.find(eq("name", domain)).limit(1).first();
+        return (snap != null);
     }
 }

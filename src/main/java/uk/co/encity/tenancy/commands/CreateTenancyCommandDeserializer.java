@@ -13,8 +13,6 @@ import java.io.IOException;
  */
 public class CreateTenancyCommandDeserializer extends StdDeserializer<CreateTenancyCommand> {
 
-    String userId = null;
-
     public CreateTenancyCommandDeserializer() {
         this(null);
     }
@@ -23,15 +21,8 @@ public class CreateTenancyCommandDeserializer extends StdDeserializer<CreateTena
         super(valueClass);
     }
 
-    public CreateTenancyCommandDeserializer setUserId(String userId) {
-        this.userId = userId;
-        return this;
-    }
-
     @Override
     public CreateTenancyCommand deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-
-        if (userId == null) throw new IOException("User Id has not been set on deserializer");
 
         JsonNode node = jp.getCodec().readTree(jp);
         String tariff = node.get("tariff").asText();
@@ -46,7 +37,7 @@ public class CreateTenancyCommandDeserializer extends StdDeserializer<CreateTena
             billingContact = new TenancyContact("","","");
         }
 
-        return new CreateTenancyCommand(userId, tariff, authContact, adminUsrContact, billingContact);
+        return new CreateTenancyCommand(tariff, authContact, adminUsrContact, billingContact);
     }
 
     private TenancyContact deserializeContact(JsonNode node) {
