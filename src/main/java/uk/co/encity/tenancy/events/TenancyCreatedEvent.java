@@ -2,6 +2,7 @@ package uk.co.encity.tenancy.events;
 
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.Transient;
 import reactor.util.Logger;
@@ -9,6 +10,7 @@ import reactor.util.Loggers;
 
 import uk.co.encity.tenancy.commands.CreateTenancyCommand;
 import uk.co.encity.tenancy.components.TenancyContact;
+import uk.co.encity.tenancy.entity.Tenancy;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -43,6 +45,10 @@ public class TenancyCreatedEvent extends TenancyEvent {
         logger.debug("Tenancy created event constructed for domain: " + this.getDomain());
     }
 
+    public TenancyCreatedEvent(String jsonObj) {
+        // Extract the fields
+    }
+
     // TODO: don't hard code 1 hour...
     @BsonIgnore
     public Instant getExpiryTime() { return this.creationTime.plus(1, ChronoUnit.HOURS); }
@@ -51,4 +57,13 @@ public class TenancyCreatedEvent extends TenancyEvent {
     public String getTariff() { return this.tariff; }
     public TenancyContact getAuthorisedContact() { return this.authorisedContact; }
     public TenancyContact getBillingContact() { return this.billingContact; }
+
+    // TODO: Define setters...
+
+
+    public Tenancy applyToTenancy(Tenancy target) {
+        // Just return the tenancy - there should be no difference in the case
+        // of a creation event!
+        return target;
+    }
 }

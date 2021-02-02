@@ -1,5 +1,9 @@
 package uk.co.encity.tenancy.service.repositories;
 
+import static com.mongodb.client.model.Sorts.*;
+import static com.mongodb.client.model.Filters.*;
+
+import com.mongodb.BasicDBObject;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
@@ -19,11 +23,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.co.encity.tenancy.commands.CreateTenancyCommand;
 import uk.co.encity.tenancy.commands.TenancyCommand;
+import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.events.TenancyCreatedEvent;
 import uk.co.encity.tenancy.events.TenancyEvent;
+import uk.co.encity.tenancy.events.TenancyEventFactory;
 import uk.co.encity.tenancy.events.TenancyEventType;
 import uk.co.encity.tenancy.service.ITenancyRepository;
 import uk.co.encity.tenancy.snapshot.TenancySnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
@@ -99,9 +108,49 @@ public class MongoDBTenancyRepository implements ITenancyRepository {
     }
 
     @Override
-    public TenancySnapshot getTenancy(String id) {
+    public Tenancy getTenancy(String id) {
 
-        return null;
+        TenancySnapshot latestSnap = this.getLatestSnapshot(id);
+
+        // Make an entity from the most recent snapshot
+        Tenancy t = Tenancy.fromSnapshot(latestSnap);
+
+        // Get all events since - in chronological order
+        List<TenancyEvent> events = getEventRange(latestSnap.getToVersion());
+        events.forEach(e -> e.applyToTenancy(t));       // Note that forEach() preserves List iterator order
+
+        return t;
+    }
+
+    @Override
+    public List<TenancyEvent> getEventRange(int fromVersion) {
+        List<TenancyEvent> evtList = new ArrayList<>();
+
+        MongoCollection<Document> events = db.getCollection("tenancy_events");
+
+        // Define a query that finds the right versions and sorts them
+        BasicDBObject evtQuery = new BasicDBObject();
+        evtQuery.put("tenancyVersionNumber", new BasicDBObject("$gt", fromVersion));
+
+        // Execute the query and for each resulting doc, call the factory to create a concrete
+        // TenancyEvent, and insert it in the list to be returned.
+        events.find(evtQuery).sort(orderBy(ascending("tenancyVersionNumber"))).forEach(e -> {
+            TenancyEvent evt = TenancyEventFactory.getTenancyEvent(
+                TenancyEventType.valueOf(e.get("eventType").toString()),
+                e.toJson());
+            evtList.add(evt);
+        });
+
+        return evtList;
+    }
+
+    @Override
+    public TenancySnapshot getLatestSnapshot(String id) {
+        ObjectId targetId = new ObjectId(id);
+        MongoCollection<TenancySnapshot> snapshots = db.getCollection("tenancy_snapshots").withDocumentClass(TenancySnapshot.class);
+        TenancySnapshot snap = snapshots.find(eq("tenancyId", new ObjectId(id))).sort(new BasicDBObject("lastUpdate", -1)).first();
+
+        return snap;
     }
 
     @Override

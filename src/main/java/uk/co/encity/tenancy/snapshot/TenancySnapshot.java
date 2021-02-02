@@ -8,7 +8,13 @@ import uk.co.encity.tenancy.entity.TenancyTenantStatus;
 import uk.co.encity.tenancy.events.TenancyCreatedEvent;
 
 import java.time.Instant;
+import java.util.UUID;
 
+/**
+ * A 'raw' snapshot of a Tenancy at a point in time.  There are no derived fields
+ * or business logic in a snapshot.  To obtain a logical entity, all subsequent events
+ * up to the desired point in time should be merged with a snapshot
+ */
 public class TenancySnapshot {
 
     @BsonProperty("_id")
@@ -26,6 +32,8 @@ public class TenancySnapshot {
     private TenancyContact billingContact;
     private TenancyTenantStatus tenantStatus;
     private TenancyProviderStatus providerStatus;
+    private UUID confirmUUID;
+    private Instant confirmExpiryTime;
 
     public TenancySnapshot(TenancyCreatedEvent evt) {
         this.snapshotId = new ObjectId();
@@ -38,8 +46,18 @@ public class TenancySnapshot {
         this.billingContact = evt.getBillingContact();
         this.tenantStatus = TenancyTenantStatus.UNCONFIRMED;
         this.providerStatus = TenancyProviderStatus.ACTIVE;
+        this.confirmUUID = evt.getConfirmUUID();
+        this.confirmExpiryTime = evt.getExpiryTime();
     }
 
+    /**
+     * Default constructor used during decoding from database
+     */
+    public TenancySnapshot() {
+        ;
+    }
+
+    // Getters
     public @BsonProperty("_id") ObjectId getSnapshotId() { return this.snapshotId; }
     public ObjectId getTenancyId() { return this.tenancyId; }
     public String getName() { return this.tenancyName; }
@@ -51,5 +69,21 @@ public class TenancySnapshot {
     public TenancyContact getBillingContact() { return this.billingContact; }
     public TenancyTenantStatus getTenantStatus() { return this.tenantStatus; }
     public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
+    public UUID getConfirmUUID() { return this.confirmUUID; }
+    public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
 
+    // Setters
+    @BsonProperty("_id") public void setSnapshotId(ObjectId id) { this.snapshotId = id; }
+    public void setTenancyId(ObjectId tId) { this.tenancyId = tId; }
+    public void setName(String name) { this.tenancyName = name; }
+    public void setFromVersion(int fromVersion) { this.fromVersion = fromVersion; }
+    public void setToVersion(int toVersion) { this.toVersion = toVersion; }
+    public void setLastUpdate(Instant lastUpd) { this.lastUpdate = lastUpd; }
+    public void setTariff(String tariff) { this.tariff = tariff; }
+    public void setAuthorisedContact(TenancyContact c) { this.authorisedContact = c; }
+    public void setBillingContact(TenancyContact c) { this.billingContact = c; }
+    public void setTenantStatus(TenancyTenantStatus s) { this.tenantStatus = s; }
+    public void setProviderStatus(TenancyProviderStatus s) { this.providerStatus = s;}
+    public void setConfirmUUID(UUID uuid) { this.confirmUUID = uuid; }
+    public void setConfirmExpiryTime(Instant time) { this.confirmExpiryTime = time; }
 }

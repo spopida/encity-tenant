@@ -1,5 +1,7 @@
 package uk.co.encity.tenancy.events;
 
+import uk.co.encity.tenancy.entity.Tenancy;
+
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 
@@ -23,6 +25,10 @@ public abstract class TenancyEvent {
     private TenancyProviderStatus providerStatus;
     private int tenancyVersionNumber;
     private ObjectId commandId;
+
+    public TenancyEvent() {
+        ;
+    }
 
     public TenancyEvent(
         TenancyEventType eventType,
@@ -55,4 +61,8 @@ public abstract class TenancyEvent {
     public TenancyTenantStatus getTenantStatus() { return this.tenantStatus; }
     public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
     public int getTenancyVersionNumber() { return tenancyVersionNumber; }
+
+    abstract public Tenancy applyToTenancy(Tenancy target);
+
+    // TODO: Define setters...
 }

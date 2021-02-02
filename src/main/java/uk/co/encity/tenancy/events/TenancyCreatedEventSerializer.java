@@ -24,6 +24,7 @@ public class TenancyCreatedEventSerializer extends StdSerializer<TenancyCreatedE
         jGen.writeStartObject();
 
         jGen.writeFieldName("tenancyId");
+        // Convert ObjectId to hex string to avoid publishing a JSON object (simpler)
         jGen.writeString(value.getTenancyId().toHexString());
         jGen.writeStringField("tariff", value.getTariff());
         jGen.writeFieldName("authorisedContact");
