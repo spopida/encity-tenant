@@ -94,8 +94,8 @@ public class TenancyController {
 
     /**
      * Attempt to create a new resource in the tenancies collection
-     * @return  A Mono that wraps a ResponseEntity containing the response.  Possible
-     *          response status codes are OK, INTERNAL_SERVER_ERROR, BAD_REQUEST
+     * @return  A {@link uk.co.encity.tenancy.entity.TenancyView} represented as HAL-compliant JSON object, or an
+     *          appropriate HTTP error response
      */
     @PostMapping("/tenancies")
     public Mono<ResponseEntity<EntityModel<TenancyView>>> createTenant(
@@ -175,6 +175,7 @@ public class TenancyController {
             // But carry on attempting to generate a response to the client
         }
 
+        // So far, so good - now add the necessary HAL relations
         // TODO: Sort out confusion over whether to use hex or native ids
         String hexId = evt.getTenancyId().toHexString();
         EntityModel<TenancyView> tenancyView;
@@ -197,15 +198,15 @@ public class TenancyController {
         }
 
         // Return a URL in the Location header - this will have to contain a resource id - base64URL of hex id
-        // So far, so good - now add the necessary HAL relations
         UriComponents uriComponents = uriBuilder.path("/tenancies").build();
         HttpHeaders headers =  new HttpHeaders();
         headers.setLocation(uriComponents.toUri());
 
+        // All done
         response = ResponseEntity.status(HttpStatus.CREATED).headers(headers).body(tenancyView);
         return Mono.just(response);
 
-        // Next refactor - return the tenancy created, plus links for actions (GET, PATCH (confirm, reject))
+        // Next refactor - add links for other actions (GET, PATCH (confirm, reject))
     }
 
 
@@ -296,7 +297,7 @@ public class TenancyController {
     }
 
     /**
-     * Attempt to get tenancy info.  A tenancy is identified by their internet domain.
+     * Attempt to get tenancy info.  A tenancy is identified by its domain.
      * @param domain the internet domain that identifies the tenancy
      * @return  A Mono that wraps a ResponseEntity containing the response.  Possible
      *          response status codes are INTERNAL_SERVER_ERROR, OK, and NOT_FOUND.
