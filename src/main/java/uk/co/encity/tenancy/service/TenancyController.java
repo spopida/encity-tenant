@@ -48,6 +48,7 @@ import java.time.Instant;
  * A RESTful web controller that supports actions relating to Tenancies.  A Tenancy is an organisation with one or more
  * users that uses encity as an agent for the companies that it serves
  */
+@CrossOrigin
 @RestController
 public class TenancyController {
 
