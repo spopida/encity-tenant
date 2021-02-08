@@ -30,6 +30,7 @@ public class TenancySnapshot {
     private String tariff;
     private TenancyContact authorisedContact;
     private TenancyContact billingContact;
+    private TenancyContact originalAdminUser;
     private TenancyTenantStatus tenantStatus;
     private TenancyProviderStatus providerStatus;
     private UUID confirmUUID;
@@ -44,6 +45,7 @@ public class TenancySnapshot {
         this.tariff = evt.getTariff();
         this.authorisedContact = evt.getAuthorisedContact();
         this.billingContact = evt.getBillingContact();
+        this.originalAdminUser = evt.getAdminUser();
         this.tenantStatus = TenancyTenantStatus.UNCONFIRMED;
         this.providerStatus = TenancyProviderStatus.ACTIVE;
         this.confirmUUID = evt.getConfirmUUID();
@@ -67,6 +69,7 @@ public class TenancySnapshot {
     public String getTariff() { return this.tariff; }
     public TenancyContact getAuthorisedContact() { return this.authorisedContact; }
     public TenancyContact getBillingContact() { return this.billingContact; }
+    public TenancyContact getOriginalAdminUser() { return this.originalAdminUser; }
     public TenancyTenantStatus getTenantStatus() { return this.tenantStatus; }
     public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
     public UUID getConfirmUUID() { return this.confirmUUID; }
@@ -82,6 +85,7 @@ public class TenancySnapshot {
     public void setTariff(String tariff) { this.tariff = tariff; }
     public void setAuthorisedContact(TenancyContact c) { this.authorisedContact = c; }
     public void setBillingContact(TenancyContact c) { this.billingContact = c; }
+    public void setOriginalAdminUser(TenancyContact c) { this.originalAdminUser = c; }
     public void setTenantStatus(TenancyTenantStatus s) { this.tenantStatus = s; }
     public void setProviderStatus(TenancyProviderStatus s) { this.providerStatus = s;}
     public void setConfirmUUID(UUID uuid) { this.confirmUUID = uuid; }

@@ -13,6 +13,7 @@ public abstract class TenancyCommand {
         UPDATE_TENANCY,
         CLOSE_TENANCY,
         CONFIRM_TENANCY,
+        REJECT_TENANCY,
         CANCEL_TENANCY_CLOSURE,
     }
 

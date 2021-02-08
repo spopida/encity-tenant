@@ -24,6 +24,7 @@ public class TenancyCreatedEvent extends TenancyEvent {
     private ObjectId commandId;
     private TenancyContact authorisedContact;
     private TenancyContact billingContact;
+    private TenancyContact adminUser;
     private UUID confirmUUID;
     private Instant creationTime;
 
@@ -38,6 +39,7 @@ public class TenancyCreatedEvent extends TenancyEvent {
         this.tariff = cmd.getTariff();
         this.authorisedContact = cmd.getAuthorisedContact();
         this.billingContact = cmd.getBillingContact();
+        this.adminUser = cmd.getAdminUser();
         this.confirmUUID = UUID.randomUUID();
         this.creationTime = Instant.now();
 
@@ -56,6 +58,7 @@ public class TenancyCreatedEvent extends TenancyEvent {
     public String getTariff() { return this.tariff; }
     public TenancyContact getAuthorisedContact() { return this.authorisedContact; }
     public TenancyContact getBillingContact() { return this.billingContact; }
+    public TenancyContact getAdminUser() { return this.adminUser; }
 
     // TODO: Define setters...
 

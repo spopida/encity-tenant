@@ -20,6 +20,7 @@ public class TenancyView {
     public String tariff;
     public TenancyContact authorisedContact;
     public TenancyContact billingContact;
+    public TenancyContact originalAdminUser;
     public String tenantStatus;
 
     protected TenancyView() {

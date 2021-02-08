@@ -112,12 +112,16 @@ public class MongoDBTenancyRepository implements ITenancyRepository {
 
         TenancySnapshot latestSnap = this.getLatestSnapshot(id);
 
-        // Make an entity from the most recent snapshot
-        Tenancy t = Tenancy.fromSnapshot(latestSnap);
+        Tenancy t = null;
+        if (latestSnap != null) {
+            // Make an entity from the most recent snapshot
+            t = Tenancy.fromSnapshot(latestSnap);
 
-        // Get all events since - in chronological order
-        List<TenancyEvent> events = getEventRange(latestSnap.getToVersion());
-        events.forEach(e -> e.applyToTenancy(t));       // Note that forEach() preserves List iterator order
+            // Get all events since - in chronological order
+            List<TenancyEvent> events = getEventRange(latestSnap.getToVersion());
+            Tenancy finalT = t;
+            events.forEach(e -> e.applyToTenancy(finalT));       // Note that forEach() preserves List iterator order
+        }
 
         return t;
     }

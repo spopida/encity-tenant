@@ -1,9 +1,6 @@
 package uk.co.encity.tenancy.service;
 
-import static com.mongodb.client.model.Filters.eq;
 import static java.util.Objects.requireNonNull;
-
-//import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,13 +12,11 @@ import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.mediatype.hal.Jackson2HalModule;
-import org.springframework.hateoas.server.LinkBuilder;
-import org.springframework.hateoas.server.reactive.WebFluxLinkBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,11 +29,13 @@ import reactor.util.Loggers;
 import uk.co.encity.tenancy.commands.CreateTenancyCommand;
 import uk.co.encity.tenancy.commands.CreateTenancyCommandDeserializer;
 import uk.co.encity.tenancy.commands.TenancyCommand;
-import uk.co.encity.tenancy.entity.*;
+import uk.co.encity.tenancy.entity.Tenancy;
+import uk.co.encity.tenancy.entity.TenancyView;
+import uk.co.encity.tenancy.entity.TenancyTenantStatus;
+import uk.co.encity.tenancy.entity.TenancyProviderStatus;
 import uk.co.encity.tenancy.events.TenancyCreatedEvent;
 import uk.co.encity.tenancy.events.TenancyCreatedEventSerializer;
 import uk.co.encity.tenancy.events.TenancyEventType;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -152,6 +149,7 @@ public class TenancyController {
             response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             return Mono.just(response);
             // TODO: Create a TenancyRejectedEvent and publish it? Consider emailing the authorised contact
+            // ...but come up with a different name - TenancyDuplicateEvent?
         } else {
             logger.debug("Tenancy for domain " + domain + " does not exist - OK to create...");
         }
@@ -198,6 +196,7 @@ public class TenancyController {
             return Mono.just(response);
         }
 
+        // TODO: Is this correct?
         // Return a URL in the Location header - this will have to contain a resource id - base64URL of hex id
         UriComponents uriComponents = uriBuilder.path("/tenancies").build();
         HttpHeaders headers =  new HttpHeaders();
@@ -236,6 +235,10 @@ public class TenancyController {
 
         // retrieve the (logical) tenancy entity
         Tenancy target = this.tenancyRepo.getTenancy(hexTenancyId);
+        if (target == null) {
+            response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return Mono.just(response);
+        }
 
         // Is confirmation still pending?
         if (! target.getTenantStatus().equals(TenancyTenantStatus.UNCONFIRMED)) {

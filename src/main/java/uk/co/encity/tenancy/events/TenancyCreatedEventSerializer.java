@@ -34,5 +34,7 @@ public class TenancyCreatedEventSerializer extends StdSerializer<TenancyCreatedE
         jGen.writeFieldName("expiryTime");
         jGen.writeObject(value.getExpiryTime());
         jGen.writeEndObject();
+
+        // TODO: Add the billingContact and originalAdminUser?  It's a bit of an omission.
     }
 }

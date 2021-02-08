@@ -7,6 +7,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
+import org.springframework.lang.NonNull;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 import uk.co.encity.tenancy.components.TenancyContact;
@@ -35,6 +36,7 @@ public class Tenancy {
     private String tariff;
     private TenancyContact authorisedContact;
     private TenancyContact billingContact;
+    private TenancyContact originalAdminUser;
     private TenancyTenantStatus tenantStatus;
     private TenancyProviderStatus providerStatus;
     private UUID confirmUUID;
@@ -42,7 +44,7 @@ public class Tenancy {
 
     public Tenancy() {}
 
-    public static Tenancy fromSnapshot(TenancySnapshot snap) {
+    public static Tenancy fromSnapshot(@NonNull TenancySnapshot snap) {
         Tenancy t = new Tenancy();
         t.tenancyId = snap.getTenancyId();
         t.tariff = snap.getTariff();
@@ -51,6 +53,7 @@ public class Tenancy {
         t.version = snap.getToVersion();
         t.authorisedContact = snap.getAuthorisedContact();
         t.billingContact = snap.getBillingContact();
+        t.originalAdminUser = snap.getOriginalAdminUser();
         t.tenantStatus = snap.getTenantStatus();
         t.providerStatus = snap.getProviderStatus();
         t.confirmUUID = snap.getConfirmUUID();
@@ -67,6 +70,7 @@ public class Tenancy {
     public String getTariff() { return this.tariff; }
     public TenancyContact getAuthorisedContact() { return this.authorisedContact; }
     public TenancyContact getBillingContact() { return this.billingContact; }
+    public TenancyContact getOriginalAdminUser() { return this.originalAdminUser; }
     public TenancyTenantStatus getTenantStatus() { return this.tenantStatus; }
     public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
     public UUID getConfirmUUID() { return this.confirmUUID; }
@@ -97,6 +101,7 @@ public class Tenancy {
         view.tariff = this.getTariff();
         view.authorisedContact = this.getAuthorisedContact();
         view.billingContact = this.getBillingContact();
+        view.originalAdminUser = this.getOriginalAdminUser();
         view.tenantStatus = this.getTenantStatus().toString();
 
         return view;
