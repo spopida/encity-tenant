@@ -1,16 +1,20 @@
 package uk.co.encity.tenancy.events;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.annotation.Transient;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import uk.co.encity.tenancy.commands.CreateTenancyCommand;
 import uk.co.encity.tenancy.components.TenancyContact;
 import uk.co.encity.tenancy.entity.Tenancy;
+import uk.co.encity.tenancy.entity.TenancyProviderStatus;
+import uk.co.encity.tenancy.entity.TenancyTenantStatus;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -21,20 +25,24 @@ public class TenancyCreatedEvent extends TenancyEvent {
     private final Logger logger = Loggers.getLogger(getClass());
 
     private String tariff;
-    private ObjectId commandId;
     private TenancyContact authorisedContact;
     private TenancyContact billingContact;
     private TenancyContact adminUser;
     private UUID confirmUUID;
     private Instant creationTime;
+    private String domain;
+    private TenancyTenantStatus tenantStatus;
+    private TenancyProviderStatus providerStatus;
+    private int expiryHours;
 
-    public TenancyCreatedEvent(CreateTenancyCommand cmd) {
+    public TenancyCreatedEvent() {}
+
+    public TenancyCreatedEvent(CreateTenancyCommand cmd, int expiryHours) {
         super(
             TenancyEventType.TENANCY_CREATED,
             new ObjectId(),
             1,
-            cmd.getCommandId(),
-            cmd.getAuthorisedContact().getEmailAddress());
+            cmd.getCommandId());
 
         this.tariff = cmd.getTariff();
         this.authorisedContact = cmd.getAuthorisedContact();
@@ -42,30 +50,52 @@ public class TenancyCreatedEvent extends TenancyEvent {
         this.adminUser = cmd.getAdminUser();
         this.confirmUUID = UUID.randomUUID();
         this.creationTime = Instant.now();
+        String parts[] = cmd.getAuthorisedContact().getEmailAddress().split("@");
+        this.domain = parts[1];
+        this.tenantStatus = TenancyTenantStatus.UNCONFIRMED;
+        this.providerStatus = TenancyProviderStatus.ACTIVE;
+        this.expiryHours = expiryHours;
+
 
         logger.debug("Tenancy created event constructed for domain: " + this.getDomain());
     }
 
-    public TenancyCreatedEvent(String jsonObj) {
-        // Extract the fields
+    public TenancyCreatedEvent(JsonNode node) throws InstantiationException {
+        super(node);
+
+        // Extract the fields from node and set them...
+        this.tariff = node.get("tariff").asText();
+        this.authorisedContact = new TenancyContact(node.get("authorisedContact"));
+        this.billingContact = new TenancyContact(node.get("billingContact"));
+        this.adminUser = new TenancyContact(node.get("adminUser"));
+        this.confirmUUID = UUID.fromString(node.get("confirmUUID").asText());
+        this.creationTime = Instant.parse(node.get("creationTime").asText());
+        this.domain = node.get("domain").asText();
+        this.tenantStatus = TenancyTenantStatus.valueOf(node.get("tenantStatus").asText());
+        this.providerStatus = TenancyProviderStatus.valueOf(node.get("providerStatus").asText());
     }
 
-    // TODO: don't hard code 1 hour...
     @BsonIgnore
-    public Instant getExpiryTime() { return this.creationTime.plus(1, ChronoUnit.HOURS); }
+    public Instant getExpiryTime() { return this.creationTime.plus(this.expiryHours, ChronoUnit.HOURS); }
     public Instant getCreationTime() { return this.creationTime; }
     public UUID getConfirmUUID() { return this.confirmUUID; }
     public String getTariff() { return this.tariff; }
     public TenancyContact getAuthorisedContact() { return this.authorisedContact; }
     public TenancyContact getBillingContact() { return this.billingContact; }
     public TenancyContact getAdminUser() { return this.adminUser; }
+    public String getDomain() { return this.domain; }
+    public TenancyTenantStatus getTenantStatus() { return this.tenantStatus; }
+    public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
 
-    // TODO: Define setters...
-
-
+    @Override
     public Tenancy applyToTenancy(Tenancy target) {
-        // Just return the tenancy - there should be no difference in the case
+        // Do nothing - there should be no difference in the case
         // of a creation event!
         return target;
+    }
+
+    @Override
+    public void addSerializerToModule(SimpleModule module) {
+        module.addSerializer(this.getClass(), new TenancyCreatedEventSerializer());
     }
 }

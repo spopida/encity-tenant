@@ -81,20 +81,23 @@ public class Tenancy {
         this.authorisedContact = authContact;
     }
 
-    public TenancyView getView() throws TenancyException {
+    public void setLastUpdateTime(Instant i) {
+        this.lastUpdate = i;
+    }
+
+    public void setVersionNumber(int v) { this.version = v; }
+
+    public void setTenantStatus(TenancyTenantStatus status) {
+        this.tenantStatus = status;
+    }
+
+    public TenancyView getView() /*throws TenancyException*/ {
 
         // Make sure to use getters, not instance vars (there could be logic in them)
 
         TenancyView view = new TenancyView();
 
-        try {
-            byte[] decodedHex = Hex.decodeHex(this.getHexTenancyId());
-            view.id = Base64.encodeBase64URLSafeString(decodedHex);
-        } catch (DecoderException e) {
-            logger.error("Unable to convert tenancy id to base 64; hex id is: " + this.getHexTenancyId());
-            throw new TenancyException(e.getMessage());
-        }
-
+        view.id = this.getHexTenancyId();
         view.name = this.getName();
         view.version = this.getVersion();
         view.lastUpdate = this.getLastUpdate().toString(); // TODO: check format, zone, etc

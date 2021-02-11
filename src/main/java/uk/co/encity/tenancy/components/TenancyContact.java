@@ -1,5 +1,7 @@
 package uk.co.encity.tenancy.components;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 public class TenancyContact {
     private String firstName;
     private String lastName;
@@ -13,6 +15,14 @@ public class TenancyContact {
 
     public TenancyContact() {
         ;
+    }
+
+    public TenancyContact(JsonNode node) {
+        this(
+            node.get("firstName").asText(),
+            node.get("lastName").asText(),
+            node.get("emailAddress").asText()
+        );
     }
 
     public String getFirstName() { return this.firstName; }

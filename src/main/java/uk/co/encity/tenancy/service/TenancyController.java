@@ -5,8 +5,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -15,6 +13,7 @@ import org.json.JSONTokener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpHeaders;
@@ -26,16 +25,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
-import uk.co.encity.tenancy.commands.CreateTenancyCommand;
-import uk.co.encity.tenancy.commands.CreateTenancyCommandDeserializer;
-import uk.co.encity.tenancy.commands.TenancyCommand;
+import uk.co.encity.tenancy.commands.*;
 import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.entity.TenancyView;
 import uk.co.encity.tenancy.entity.TenancyTenantStatus;
 import uk.co.encity.tenancy.entity.TenancyProviderStatus;
-import uk.co.encity.tenancy.events.TenancyCreatedEvent;
-import uk.co.encity.tenancy.events.TenancyCreatedEventSerializer;
-import uk.co.encity.tenancy.events.TenancyEventType;
+import uk.co.encity.tenancy.events.*;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -55,11 +50,6 @@ public class TenancyController {
     private static final String topicExchangeName = "encity-exchange";
 
     /**
-     * The name of the database collection of tenancies
-     */
-    private static final String TENANCY_COLLECTION = "tenancy";
-
-    /**
      * The {@link Logger} for this class
      */
     private final Logger logger = Loggers.getLogger(getClass());
@@ -67,12 +57,18 @@ public class TenancyController {
     /**
      * The repository of tenancies
      */
-    private ITenancyRepository tenancyRepo;
+    private final ITenancyRepository tenancyRepo;
 
     /**
      * The RabbitMQ helper class
      */
-    private RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate;
+
+    /**
+     * Expiry Hours
+     */
+    @Value("${tenancy.expiryHours:36}")
+    private int expiryHours;
 
     /**
      * Construct an instance with access to a repository of tenancies and a RabbitMQ helper.
@@ -80,12 +76,13 @@ public class TenancyController {
      *             to/from persistent storage
      * @param rabbitTmpl the instance of {@link RabbitTemplate} used for accessing an AMQP service
      */
-    public TenancyController(@Autowired ITenancyRepository repo, @Autowired RabbitTemplate rabbitTmpl) {
+    public TenancyController(@Autowired ITenancyRepository repo, @Autowired RabbitTemplate rabbitTmpl, @Value("${tenancy.expiryHours:36}") int hrs) {
         logger.info("Constructing " + this.getClass().getName());
 
         this.tenancyRepo = repo;
         this.rabbitTemplate = rabbitTmpl;
         this.rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+        this.expiryHours = hrs;
 
         logger.info("Construction of " + this.getClass().getName() + " is complete");
     }
@@ -97,9 +94,9 @@ public class TenancyController {
      */
     @PostMapping("/tenancies")
     public Mono<ResponseEntity<EntityModel<TenancyView>>> createTenant(
-            @RequestBody String body,
-            UriComponentsBuilder uriBuilder) {
-
+        @RequestBody String body,
+        UriComponentsBuilder uriBuilder)
+    {
         // TODO: fix hard-coding of name?
         final String createTenancyCommandSchema = "command-schemas/create-tenancy-command.json";
 
@@ -109,9 +106,9 @@ public class TenancyController {
         // Validate the request body against the relevant JSON schema
         try {
             Schema schema = SchemaLoader.load(
-                    new JSONObject(
-                            new JSONTokener(requireNonNull(getClass().getClassLoader().getResourceAsStream(createTenancyCommandSchema)))
-                    )
+                new JSONObject(
+                    new JSONTokener(requireNonNull(getClass().getClassLoader().getResourceAsStream(createTenancyCommandSchema)))
+                )
             );
             JSONObject command = new JSONObject(new JSONTokener(body));
             schema.validate(command);
@@ -138,7 +135,7 @@ public class TenancyController {
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             return Mono.just(response);
         }
-        tenancyRepo.captureTenantCommand(TenancyCommand.TenancyTenantCommandType.CREATE_TENANCY, cmd);
+        tenancyRepo.captureTenancyCommand(TenancyCommand.TenancyTenantCommandType.CREATE_TENANCY, cmd);
 
         // Check whether the tenancy already exists - if so, then BAD_REQUEST (or let them update it..do that later)
         String parts[] = cmd.getAuthorisedContact().getEmailAddress().split("@");
@@ -148,14 +145,12 @@ public class TenancyController {
             logger.debug("Rejecting request to create existing tenancy for domain " + domain);
             response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             return Mono.just(response);
-            // TODO: Create a TenancyRejectedEvent and publish it? Consider emailing the authorised contact
-            // ...but come up with a different name - TenancyDuplicateEvent?
         } else {
             logger.debug("Tenancy for domain " + domain + " does not exist - OK to create...");
         }
 
         // Create the relevant events - in this case just a TenancyCreatedEvent
-        TenancyCreatedEvent evt = new TenancyCreatedEvent(cmd);
+        TenancyCreatedEvent evt = new TenancyCreatedEvent(cmd, expiryHours);
         tenancyRepo.captureEvent(TenancyEventType.TENANCY_CREATED, evt);
 
         // Create an initial snapshot for the tenancy
@@ -175,14 +170,14 @@ public class TenancyController {
         }
 
         // So far, so good - now add the necessary HAL relations
-        // TODO: Sort out confusion over whether to use hex or native ids
-        String hexId = evt.getTenancyId().toHexString();
+        String hexId = evt.getTenancyIdHex();
         EntityModel<TenancyView> tenancyView;
         try {
             tenancyView = EntityModel.of(tenancyRepo.getTenancy(hexId).getView());
             try {
                 Method m = TenancyController.class.getMethod("getTenancy", String.class);
-                Link l = linkTo(m, domain).withSelfRel();
+                Link l = linkTo(m, hexId).withSelfRel();
+                //Link l = linkTo(m, domain).withSelfRel();
 
                 tenancyView.add(l);
             } catch (NoSuchMethodException e) {
@@ -196,9 +191,8 @@ public class TenancyController {
             return Mono.just(response);
         }
 
-        // TODO: Is this correct?
-        // Return a URL in the Location header - this will have to contain a resource id - base64URL of hex id
-        UriComponents uriComponents = uriBuilder.path("/tenancies").build();
+        // And a location header
+        UriComponents uriComponents = uriBuilder.path("/tenancies/" + hexId).build();
         HttpHeaders headers =  new HttpHeaders();
         headers.setLocation(uriComponents.toUri());
 
@@ -209,6 +203,133 @@ public class TenancyController {
         // Next refactor - add links for other actions (GET, PATCH (confirm, reject))
     }
 
+    /**
+     * Attempt to patch a tenancy
+     */
+    @PatchMapping(value = "/tenancy/{id}")
+    public Mono<ResponseEntity<EntityModel<TenancyView>>> patchTenancy(
+        @PathVariable String id,
+        @RequestBody String body,
+        UriComponentsBuilder uriBuilder)
+    {
+        logger.debug("Attempting to patch a tenancy from request body:\n" + body);
+        ResponseEntity<EntityModel<TenancyView>> response = null;
+
+        // Figure out the type of update
+        //  - validate against a generic patch schema that checks the command is supported
+        //  - validate the patch data against a specific schema (when more transitions are implemented)
+
+        // The schema contains an enumeration of possible patch sub-types (confirm, reject, etc)
+        final String patchTenancyCommandSchema = "command-schemas/patch-tenancy-command.json";
+
+        try {
+            Schema schema = SchemaLoader.load(
+                new JSONObject(
+                    new JSONTokener(requireNonNull(getClass().getClassLoader().getResourceAsStream(patchTenancyCommandSchema)))
+                )
+            );
+            JSONObject patch = new JSONObject(new JSONTokener(body));
+            schema.validate(patch);
+            logger.debug("Incoming patch request contains valid request type");
+
+            // As we add more transitions, additional validation will be needed here
+        } catch (ValidationException e) {
+            logger.warn("Incoming request body does NOT validate against patch schema; potential API mis-use!");
+            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return Mono.just(response);
+        }
+
+        // De-serialise the command into an object and store it
+        PatchTenancyCommand cmd = null;
+
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(PatchTenancyCommand.class, new PatchTenancyCommandDeserializer(id));
+        mapper.registerModule(module);
+
+        try {
+            cmd = mapper.readValue(body, PatchTenancyCommand.class);
+            logger.debug("Patch tenancy command de-serialised successfully");
+        } catch (IOException e) {
+            logger.error("Error de-serialising patch tenancy command: " + e.getMessage());
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return Mono.just(response);
+        }
+        tenancyRepo.captureTenancyCommand(cmd.getCommandType(), cmd);
+
+        // Check pre-conditions for the command to succeed
+        Tenancy t = null;
+        try {
+            if ((t = this.tenancyRepo.getTenancy(id)) != null) {
+                try {
+                    cmd.checkPreConditions(t);
+                } catch (PreConditionException e) {
+                    logger.debug(e.getMessage());
+                    response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+                    return Mono.just(response);
+                }
+
+                // OK - it can be actioned
+            } else {
+                logger.debug("Cannot patch tenancy " + id + " as it doesn't exist");
+                // TODO: Consider providing an alternative error status - BAD_REQUEST doesn't see totally appropriate
+                response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                return Mono.just(response);
+            }
+        } catch (IOException e) {
+            String msg = "Unexpected failure reading tenancy with id: " + id;
+            logger.error(msg);
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return Mono.just(response);
+        }
+
+        // Create and save an event - we've 'done' the command after this
+        TenancyEvent evt = cmd.createTenancyEvent(t);
+        tenancyRepo.captureEvent(evt.getEventType(), evt);
+
+        // Publish the event
+        logger.debug("Sending message...");
+        evt.addSerializerToModule(module);
+        mapper.registerModule(module);
+        String jsonEvt;
+        try {
+            jsonEvt = mapper.writeValueAsString(evt);
+            // TODO: the routingKey below needs to be conditional on the event type !!
+            // Alternatively we could have encity.tenancy.patched as a routing key
+            rabbitTemplate.convertAndSend(topicExchangeName, "encity.tenancy.confirmed", jsonEvt);
+        } catch (IOException e) {
+            logger.error("Error publishing tenancy confirmed event: " + e.getMessage());
+            // But carry on attempting to generate a response to the client
+        }
+
+        String hexId = t.getHexTenancyId();
+        EntityModel<TenancyView> tenancyView;
+        try {
+            tenancyView = EntityModel.of(t.getView());
+            try {
+                Method m = TenancyController.class.getMethod("getTenancy", String.class);
+                Link l = linkTo(m, id).withSelfRel();
+
+                tenancyView.add(l);
+            } catch (NoSuchMethodException e) {
+                logger.error("Failure generating HAL relations - please investigate.  TenancyId: " + hexId);
+                response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                return Mono.just(response);
+            }
+        } catch (Exception e) {
+            logger.error("Unexpected error getting tenancy details for response - please investigate: " + hexId);
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return Mono.just(response);
+        }
+
+        // Build a response (include the correct location)
+        UriComponents uriComponents = uriBuilder.path("/tenancies/" + hexId).build();
+        HttpHeaders headers =  new HttpHeaders();
+        headers.setLocation(uriComponents.toUri());
+
+        response = ResponseEntity.status(HttpStatus.OK).headers(headers).body(tenancyView);
+        return Mono.just(response);
+    }
 
     /**
      * Attempt to get a JSON representation of a tenancy that requires confirmation by an
@@ -231,25 +352,33 @@ public class TenancyController {
 
         // Translate the tenancyId from base64url into a hex string
         // TODO: Move this to a utils function?
-        String hexTenancyId = Hex.encodeHexString(Base64.decodeBase64(tenancyId));
+        //String hexTenancyId = Hex.encodeHexString(Base64.decodeBase64(tenancyId));
 
         // retrieve the (logical) tenancy entity
-        Tenancy target = this.tenancyRepo.getTenancy(hexTenancyId);
-        if (target == null) {
-            response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        Tenancy target = null;
+        try {
+            target = this.tenancyRepo.getTenancy(tenancyId);
+            if (target == null) {
+                response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                return Mono.just(response);
+            }
+        } catch (IOException e) {
+            String msg = "Unexpected failure reading tenancy with id: " + tenancyId;
+            logger.error(msg);
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             return Mono.just(response);
         }
 
         // Is confirmation still pending?
         if (! target.getTenantStatus().equals(TenancyTenantStatus.UNCONFIRMED)) {
-            logger.debug("Cannot confirm tenancy as it is not UNCONFIRMED: " + target.getHexTenancyId() + ", status=" + target.getTenantStatus());
+            logger.debug("Cannot confirm tenancy as it is not UNCONFIRMED: " + tenancyId + ", status=" + target.getTenantStatus());
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
             return Mono.just(response);
         }
 
         // Has the tenancy been suspended?
         if (! target.getProviderStatus().equals(TenancyProviderStatus.ACTIVE)) {
-            logger.debug("Cannot confirm tenancy as it is not ACTIVE: " + target.getHexTenancyId() + ", status=" + target.getProviderStatus());
+            logger.debug("Cannot confirm tenancy as it is not ACTIVE: " + tenancyId + ", status=" + target.getProviderStatus());
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
             return Mono.just(response);
         }
@@ -259,7 +388,7 @@ public class TenancyController {
             logger.warn(
                     "Attempt to confirm a tenancy with mis-matched UUIDs.  Incoming: " + confirmUUID + ", target=" + target.getConfirmUUIDString() + ".\n" +
                     "Repeated attempts with different UUIDs might indicate suspicious activity.");
-            response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
             return Mono.just(response);
         }
 
