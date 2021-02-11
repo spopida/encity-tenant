@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
@@ -19,30 +18,6 @@ import uk.co.encity.tenancy.entity.Tenancy;
  * An event that has occurred in relation to a specific {@link Tenancy}
  */
 public abstract class TenancyEvent {
-
-    public static TenancyEvent getTenancyEvent(
-        TenancyEventType type,
-        JsonNode node)
-        throws InstantiationException
-    {
-        TenancyEvent evt = null;
-
-        switch (type) {
-            case TENANCY_CREATED:
-                evt = new TenancyCreatedEvent(node);
-                break;
-            case TENANCY_REJECTED:
-                evt = new TenancyRejectedEvent(node);
-                break;
-            case TENANCY_CONFIRMED:
-                evt = new TenancyConfirmedEvent(node);
-                break;
-            default:
-                throw new InstantiationException("Unexpected value: " + type);
-        };
-
-        return evt;
-    }
 
     // TODO: Find a way of avoiding leakage of ObjectIds outside of the repository
 

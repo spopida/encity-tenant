@@ -6,6 +6,7 @@ import uk.co.encity.tenancy.events.TenancyEvent;
 
 public abstract class PatchTenancyCommand extends TenancyCommand {
 
+    // TODO: This command type should be in the base class!
     private TenancyCommand.TenancyTenantCommandType cmdType;
     private String hexTenancyId;
 

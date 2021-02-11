@@ -1,12 +1,8 @@
 package uk.co.encity.tenancy.events;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Value;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -58,21 +54,6 @@ public class TenancyCreatedEvent extends TenancyEvent {
 
 
         logger.debug("Tenancy created event constructed for domain: " + this.getDomain());
-    }
-
-    public TenancyCreatedEvent(JsonNode node) throws InstantiationException {
-        super(node);
-
-        // Extract the fields from node and set them...
-        this.tariff = node.get("tariff").asText();
-        this.authorisedContact = new TenancyContact(node.get("authorisedContact"));
-        this.billingContact = new TenancyContact(node.get("billingContact"));
-        this.adminUser = new TenancyContact(node.get("adminUser"));
-        this.confirmUUID = UUID.fromString(node.get("confirmUUID").asText());
-        this.creationTime = Instant.parse(node.get("creationTime").asText());
-        this.domain = node.get("domain").asText();
-        this.tenantStatus = TenancyTenantStatus.valueOf(node.get("tenantStatus").asText());
-        this.providerStatus = TenancyProviderStatus.valueOf(node.get("providerStatus").asText());
     }
 
     @BsonIgnore

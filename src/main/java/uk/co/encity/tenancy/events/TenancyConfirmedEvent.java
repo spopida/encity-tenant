@@ -1,10 +1,6 @@
 package uk.co.encity.tenancy.events;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
-import org.bson.types.ObjectId;
 import uk.co.encity.tenancy.commands.PatchTenancyCommand;
 import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.entity.TenancyTenantStatus;
@@ -19,10 +15,6 @@ public class TenancyConfirmedEvent extends TenancyEvent {
                 current.getTenancyId(),
                 current.getVersion() + 1,
                 cmd.getCommandId());
-    }
-
-    public TenancyConfirmedEvent(JsonNode node) throws InstantiationException {
-        super(node);
     }
 
     @Override
