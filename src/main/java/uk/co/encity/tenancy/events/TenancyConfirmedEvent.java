@@ -27,4 +27,7 @@ public class TenancyConfirmedEvent extends TenancyEvent {
     public void addSerializerToModule(SimpleModule module) {
         module.addSerializer(this.getClass(), new TenancyConfirmedEventSerializer());
     }
+
+    @Override
+    public String getRoutingKey() { return "encity.tenancy.confirmed"; }
 }

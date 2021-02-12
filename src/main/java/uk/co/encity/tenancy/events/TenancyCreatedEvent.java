@@ -79,4 +79,7 @@ public class TenancyCreatedEvent extends TenancyEvent {
     public void addSerializerToModule(SimpleModule module) {
         module.addSerializer(this.getClass(), new TenancyCreatedEventSerializer());
     }
+
+    @Override
+    public String getRoutingKey() { return "encity.tenancy.created"; }
 }

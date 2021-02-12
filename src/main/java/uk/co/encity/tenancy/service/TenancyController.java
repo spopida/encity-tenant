@@ -272,7 +272,6 @@ public class TenancyController {
                 // OK - it can be actioned
             } else {
                 logger.debug("Cannot patch tenancy " + id + " as it doesn't exist");
-                // TODO: Consider providing an alternative error status - BAD_REQUEST doesn't see totally appropriate
                 response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
                 return Mono.just(response);
             }
@@ -294,9 +293,7 @@ public class TenancyController {
         String jsonEvt;
         try {
             jsonEvt = mapper.writeValueAsString(evt);
-            // TODO: the routingKey below needs to be conditional on the event type !!
-            // Alternatively we could have encity.tenancy.patched as a routing key
-            rabbitTemplate.convertAndSend(topicExchangeName, "encity.tenancy.confirmed", jsonEvt);
+            rabbitTemplate.convertAndSend(topicExchangeName, evt.getRoutingKey(), jsonEvt);
         } catch (IOException e) {
             logger.error("Error publishing tenancy confirmed event: " + e.getMessage());
             // But carry on attempting to generate a response to the client

@@ -28,5 +28,6 @@ public class TenancyRejectedEvent extends TenancyEvent {
         module.addSerializer(this.getClass(), new TenancyRejectedEventSerializer());
     }
 
-
+    @Override
+    public String getRoutingKey() { return "encity.tenancy.rejected"; }
 }

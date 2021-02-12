@@ -114,6 +114,7 @@ public abstract class TenancyEvent {
      */
     abstract public Tenancy applyToTenancy(Tenancy target);
     abstract public void addSerializerToModule(SimpleModule module);
+    abstract public String getRoutingKey();
 
     public final Tenancy updateTenancy(Tenancy target) {
         target.setLastUpdateTime( this.eventDateTime);
