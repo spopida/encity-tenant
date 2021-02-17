@@ -1,12 +1,6 @@
 package uk.co.encity.tenancy.entity;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
-import org.bson.types.ObjectId;
 import uk.co.encity.tenancy.components.TenancyContact;
-
-import java.time.Instant;
-import java.util.UUID;
 
 /**
  * A simple view of a {@link Tenancy} that only shows what should be visible

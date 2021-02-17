@@ -17,6 +17,7 @@ import java.util.UUID;
  */
 public class TenancySnapshot {
 
+    // TODO: Use Lombok for all the getters and setters (and no args constructor)
     @BsonProperty("_id")
     private ObjectId snapshotId;
     private ObjectId tenancyId;
