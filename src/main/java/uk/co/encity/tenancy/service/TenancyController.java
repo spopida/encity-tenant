@@ -57,7 +57,7 @@ public class TenancyController {
     /**
      * The repository of tenancies
      */
-    private final ITenancyRepository tenancyRepo;
+    private final TenancyRepository tenancyRepo;
 
     /**
      * The RabbitMQ helper class
@@ -72,11 +72,11 @@ public class TenancyController {
 
     /**
      * Construct an instance with access to a repository of tenancies and a RabbitMQ helper.
-     * @param repo the instance of {@link ITenancyRepository} that is used to read and write tenancies
+     * @param repo the instance of {@link TenancyRepository} that is used to read and write tenancies
      *             to/from persistent storage
      * @param rabbitTmpl the instance of {@link RabbitTemplate} used for accessing an AMQP service
      */
-    public TenancyController(@Autowired ITenancyRepository repo, @Autowired RabbitTemplate rabbitTmpl, @Value("${tenancy.expiryHours:36}") int hrs) {
+    public TenancyController(@Autowired TenancyRepository repo, @Autowired RabbitTemplate rabbitTmpl, @Value("${tenancy.expiryHours:36}") int hrs) {
         logger.info("Constructing " + this.getClass().getName());
 
         this.tenancyRepo = repo;
@@ -346,10 +346,6 @@ public class TenancyController {
     {
         logger.debug("Received request to GET tenancy: " + tenancyId + " for confirmation purposes");
         ResponseEntity<EntityModel<TenancyView>> response = null;
-
-        // Translate the tenancyId from base64url into a hex string
-        // TODO: Move this to a utils function?
-        //String hexTenancyId = Hex.encodeHexString(Base64.decodeBase64(tenancyId));
 
         // retrieve the (logical) tenancy entity
         Tenancy target = null;

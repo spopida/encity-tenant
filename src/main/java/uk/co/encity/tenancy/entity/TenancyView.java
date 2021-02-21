@@ -16,6 +16,7 @@ public class TenancyView {
     public TenancyContact billingContact;
     public TenancyContact originalAdminUser;
     public String tenantStatus;
+    public String domain;
 
     protected TenancyView() {
         ;

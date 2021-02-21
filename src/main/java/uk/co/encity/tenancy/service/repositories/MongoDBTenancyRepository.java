@@ -1,13 +1,11 @@
 package uk.co.encity.tenancy.service.repositories;
 
-import static com.mongodb.client.model.Sorts.*;
 import static com.mongodb.client.model.Filters.*;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.*;
-import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.codecs.UuidCodec;
 import org.bson.codecs.configuration.CodecRegistries;
@@ -24,7 +22,7 @@ import uk.co.encity.tenancy.commands.CreateTenancyCommand;
 import uk.co.encity.tenancy.commands.TenancyCommand;
 import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.events.*;
-import uk.co.encity.tenancy.service.ITenancyRepository;
+import uk.co.encity.tenancy.service.TenancyRepository;
 import uk.co.encity.tenancy.snapshot.TenancySnapshot;
 
 import java.io.IOException;
@@ -35,7 +33,7 @@ import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 @Component
-public class MongoDBTenancyRepository implements ITenancyRepository {
+public class MongoDBTenancyRepository implements TenancyRepository {
 
     /**
      * The {@link Logger} for this class

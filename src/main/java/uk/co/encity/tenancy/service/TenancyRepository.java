@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Interface for a repository that can handle tenancy-related commands, events, and entities
  */
-public interface ITenancyRepository {
+public interface TenancyRepository {
     public void captureTenancyCommand(TenancyCommand.TenancyTenantCommandType commandType, TenancyCommand command);
     public void captureProviderCommand(TenancyCommand.TenancyProviderCommandType commandType, JSONObject command);
     public void captureTenancySnapshot(TenancyCreatedEvent evt);

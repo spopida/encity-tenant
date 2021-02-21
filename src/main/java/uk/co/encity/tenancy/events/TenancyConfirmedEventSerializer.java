@@ -25,6 +25,8 @@ public class TenancyConfirmedEventSerializer extends StdSerializer<TenancyConfir
         value.writeJson(jGen);
         jGen.writeFieldName("originalAdminUser");
         jGen.writeObject(value.getOriginalAdminUser());
+        jGen.writeFieldName("domain");
+        jGen.writeString(value.getDomain());
         jGen.writeEndObject();
     }
 }

@@ -17,6 +17,11 @@ public class TenancyConfirmedEvent extends TenancyEvent {
      */
     private TenancyContact originalAdminUser;
 
+    /**
+     * The domain of the confirmed tenancy
+     */
+    private String domain;
+
     public TenancyConfirmedEvent() {}
 
     /**
@@ -34,9 +39,11 @@ public class TenancyConfirmedEvent extends TenancyEvent {
                 cmd.getCommandId());
 
         this.originalAdminUser = current.getOriginalAdminUser();
+        this.domain = current.getDomain();
     }
 
     public TenancyContact getOriginalAdminUser() { return this.originalAdminUser; }
+    public String getDomain() { return this.domain; }
 
     @Override
     public Tenancy applyToTenancy(Tenancy target) {

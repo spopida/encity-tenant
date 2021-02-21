@@ -1,5 +1,6 @@
 package uk.co.encity.tenancy.snapshot;
 
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 import uk.co.encity.tenancy.components.TenancyContact;
@@ -75,6 +76,11 @@ public class TenancySnapshot {
     public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
     public UUID getConfirmUUID() { return this.confirmUUID; }
     public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
+
+    @BsonIgnore public String getDomain() {
+        String parts[] = this.authorisedContact.getEmailAddress().split("@");
+        return parts[1];
+    }
 
     // Setters
     @BsonProperty("_id") public void setSnapshotId(ObjectId id) { this.snapshotId = id; }

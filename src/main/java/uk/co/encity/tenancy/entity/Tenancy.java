@@ -41,6 +41,7 @@ public class Tenancy {
     private TenancyProviderStatus providerStatus;
     private UUID confirmUUID;
     private Instant confirmExpiryTime;
+    private String domain;
 
     public Tenancy() {}
 
@@ -58,6 +59,7 @@ public class Tenancy {
         t.providerStatus = snap.getProviderStatus();
         t.confirmUUID = snap.getConfirmUUID();
         t.confirmExpiryTime = snap.getConfirmExpiryTime();
+        t.domain = snap.getDomain();
 
         return t;
     }
@@ -76,6 +78,9 @@ public class Tenancy {
     public UUID getConfirmUUID() { return this.confirmUUID; }
     public String getConfirmUUIDString() { return this.confirmUUID.toString(); }
     public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
+    public String getDomain() { return this.domain; }
+
+
 
     public void setAuthorisedContact(TenancyContact authContact) {
         this.authorisedContact = authContact;
