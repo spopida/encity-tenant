@@ -432,37 +432,7 @@ public class TenancyController {
     public Mono<ResponseEntity<String>> getTenancy(@PathVariable String domain) {
         logger.debug("Attempting to GET tenancy: " + domain);
         ResponseEntity<String> response = null;
-        response = ResponseEntity.status(HttpStatus.OK).body("");
+        response = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("");
         return Mono.just(response);
     }
-/*
-        ResponseEntity<String> response = null;
-        MongoCollection<Document> tenantCollection = null;
-
-        // Get the collection of tenants - if it's not there, that's a serious error
-        try {
-            tenantCollection = this.db.getCollection(TENANT_COLLECTION);
-        } catch (IllegalArgumentException e) {
-            logger.error("COULD NOT FIND COLLECTION: " + TENANT_COLLECTION + "; INVESTIGATE");
-            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        // Now get the tenancy; if it's found, then return it in the body (200), else it's a 404
-        if (tenantCollection != null) {
-            Document found = tenantCollection.find(eq("domain", domain)).first();
-
-            if (found != null) {
-                logger.debug("Found tenancy: " + domain );
-                response = ResponseEntity.status(HttpStatus.OK).body(found.toJson());
-            } else {
-                logger.debug("Could not find tenancy: " + domain);
-                response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-        }
-        ResponseEntity<String> response = null;
-        response = ResponseEntity.status(HttpStatus.OK).body("");
-        return Mono.just(response);
-    }
-*/
-
 }

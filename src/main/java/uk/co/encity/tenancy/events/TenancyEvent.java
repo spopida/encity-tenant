@@ -136,6 +136,8 @@ public abstract class TenancyEvent {
         jGen.writeString(this.getEventType().toString());
         jGen.writeFieldName("tenancyId");
         jGen.writeString(this.getTenancyId().toHexString());
+        jGen.writeFieldName("commandId");
+        jGen.writeString(this.getCommandId().toHexString());
         jGen.writeFieldName("eventDateTime");
         jGen.writeObject(this.getEventDateTime());
         return;

@@ -85,8 +85,7 @@ public class MongoDBTenancyRepository implements TenancyRepository {
     }
 
     /**
-     * Create an initial tenancy snapshot from a {@link CreateTenancyCommand} object.  Because
-     * this represents the creation event, we also create an identity
+     * Create an initial tenancy snapshot from a {@link CreateTenancyCommand} object.
      * @param evt the {@link TenancyCreatedEvent} that led to this initial snapshot
      */
     @Override
