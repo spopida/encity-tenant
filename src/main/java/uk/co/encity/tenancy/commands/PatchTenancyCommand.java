@@ -1,9 +1,15 @@
 package uk.co.encity.tenancy.commands;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import lombok.Getter;
 import org.springframework.lang.NonNull;
 import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.events.TenancyEvent;
 
+import java.util.List;
+
+@Getter
 public abstract class PatchTenancyCommand extends TenancyCommand {
 
     // TODO: This command type should be in the base class!
@@ -22,8 +28,9 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
     public abstract TenancyEvent createTenancyEvent(Tenancy t);
 
     public static PatchTenancyCommand getPatchTenancyCommand(
-        @NonNull TenancyCommand.TenancyTenantCommandType cmdtype,
-        String hexTenancyId)
+            @NonNull TenancyCommand.TenancyTenantCommandType cmdtype,
+            String hexTenancyId,
+            JsonNode node)
     {
         PatchTenancyCommand patchCmd = null;
 
@@ -34,6 +41,9 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
             case REJECT_TENANCY:
                 patchCmd = new RejectTenancyCommand(hexTenancyId);
                 break;
+            case CHANGE_PORTFOLIO:
+                List<String> entityIds = node.findValuesAsText("entityIds");
+                patchCmd = new ChangePortfolioCommand(hexTenancyId, entityIds);
         }
 
         return patchCmd;
