@@ -25,9 +25,11 @@ public class PatchTenancyCommandDeserializer extends StdDeserializer<PatchTenanc
         JsonNode node = jp.getCodec().readTree(jp);
         String transition = node.get("action").asText();
 
-        return PatchTenancyCommand.getPatchTenancyCommand(
-            TenancyCommand.ACTION_MAP.get(transition),
-            this.hexTenancyId
+        PatchTenancyCommand result = PatchTenancyCommand.getPatchTenancyCommand(
+                TenancyCommand.ACTION_MAP.get(transition),
+                this.hexTenancyId,
+                node
         );
+        return result;
     }
 }

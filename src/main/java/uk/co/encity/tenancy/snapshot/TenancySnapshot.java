@@ -9,6 +9,8 @@ import uk.co.encity.tenancy.entity.TenancyTenantStatus;
 import uk.co.encity.tenancy.events.TenancyCreatedEvent;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -37,6 +39,7 @@ public class TenancySnapshot {
     private TenancyProviderStatus providerStatus;
     private UUID confirmUUID;
     private Instant confirmExpiryTime;
+    private List<String> defaultPortfolio;
 
     public TenancySnapshot(TenancyCreatedEvent evt) {
         this.snapshotId = new ObjectId();
@@ -52,6 +55,7 @@ public class TenancySnapshot {
         this.providerStatus = TenancyProviderStatus.ACTIVE;
         this.confirmUUID = evt.getConfirmUUID();
         this.confirmExpiryTime = evt.getExpiryTime();
+        this.defaultPortfolio = new ArrayList<String>();
     }
 
     /**
@@ -76,6 +80,7 @@ public class TenancySnapshot {
     public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
     public UUID getConfirmUUID() { return this.confirmUUID; }
     public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
+    public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
 
     @BsonIgnore public String getDomain() {
         String parts[] = this.authorisedContact.getEmailAddress().split("@");
@@ -97,4 +102,5 @@ public class TenancySnapshot {
     public void setProviderStatus(TenancyProviderStatus s) { this.providerStatus = s;}
     public void setConfirmUUID(UUID uuid) { this.confirmUUID = uuid; }
     public void setConfirmExpiryTime(Instant time) { this.confirmExpiryTime = time; }
+    public void setDefaultPortfolio(List<String> entityIds) { this.defaultPortfolio = entityIds; }
 }

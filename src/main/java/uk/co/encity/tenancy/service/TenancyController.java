@@ -1,7 +1,7 @@
 package uk.co.encity.tenancy.service;
 
 import static java.util.Objects.requireNonNull;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+//import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -14,8 +14,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
+//import org.springframework.hateoas.EntityModel;
+//import org.springframework.hateoas.Link;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,21 +67,35 @@ public class TenancyController {
     /**
      * Expiry Hours
      */
+    // TODO: remove the @Value annotation below?
     @Value("${tenancy.expiryHours:36}")
     private int expiryHours;
+
+    /**
+     * The service that contains the business logic
+     */
+    private final TenancyService service;
 
     /**
      * Construct an instance with access to a repository of tenancies and a RabbitMQ helper.
      * @param repo the instance of {@link TenancyRepository} that is used to read and write tenancies
      *             to/from persistent storage
      * @param rabbitTmpl the instance of {@link RabbitTemplate} used for accessing an AMQP service
+     * @param service the service that contains the business logic
+     * @param hrs the number of hours that will elapse before an unconfirmed tenancy expires
      */
-    public TenancyController(@Autowired TenancyRepository repo, @Autowired RabbitTemplate rabbitTmpl, @Value("${tenancy.expiryHours:36}") int hrs) {
+    public TenancyController(
+            @Autowired TenancyRepository repo,
+            @Autowired RabbitTemplate rabbitTmpl,
+            @Autowired TenancyService service,
+            @Value("${tenancy.expiryHours:36}") int hrs) {
         logger.info("Constructing " + this.getClass().getName());
 
         this.tenancyRepo = repo;
         this.rabbitTemplate = rabbitTmpl;
         this.rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+
+        this.service = service;
         this.expiryHours = hrs;
 
         logger.info("Construction of " + this.getClass().getName() + " is complete");
@@ -93,7 +107,7 @@ public class TenancyController {
      *          appropriate HTTP error response
      */
     @PostMapping("/tenancies")
-    public Mono<ResponseEntity<EntityModel<TenancyView>>> createTenant(
+    public Mono<ResponseEntity<TenancyView>> createTenant(
         @RequestBody String body,
         UriComponentsBuilder uriBuilder)
     {
@@ -101,7 +115,7 @@ public class TenancyController {
         final String createTenancyCommandSchema = "command-schemas/create-tenancy-command.json";
 
         logger.debug("Attempting to create a new tenancy from request body:\n" + body);
-        ResponseEntity<EntityModel<TenancyView>> response = null;
+        ResponseEntity<TenancyView> response = null;
 
         // Validate the request body against the relevant JSON schema
         try {
@@ -171,49 +185,36 @@ public class TenancyController {
 
         // So far, so good - now add the necessary HAL relations
         String hexId = evt.getTenancyIdHex();
-        EntityModel<TenancyView> tenancyView;
-        try {
-            tenancyView = EntityModel.of(tenancyRepo.getTenancy(hexId).getView());
-            try {
-                Method m = TenancyController.class.getMethod("getTenancy", String.class);
-                Link l = linkTo(m, hexId).withSelfRel();
-                //Link l = linkTo(m, domain).withSelfRel();
 
-                tenancyView.add(l);
-            } catch (NoSuchMethodException e) {
-                logger.error("Failure generating HAL relations - please investigate.  TenancyId: " + hexId);
-                response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                return Mono.just(response);
-            }
-        } catch (Exception e) {
+        try {
+            TenancyView tenancyView = tenancyRepo.getTenancy(hexId).getView();
+
+            // And a location header
+            UriComponents uriComponents = uriBuilder.path("/tenancies/" + hexId).build();
+            HttpHeaders headers =  new HttpHeaders();
+            headers.setLocation(uriComponents.toUri());
+
+            // All done
+            response = ResponseEntity.status(HttpStatus.CREATED).headers(headers).body(tenancyView);
+            return Mono.just(response);
+        } catch (IOException e) {
             logger.error("Unexpected error getting tenancy details for response - please investigate: " + hexId);
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             return Mono.just(response);
         }
-
-        // And a location header
-        UriComponents uriComponents = uriBuilder.path("/tenancies/" + hexId).build();
-        HttpHeaders headers =  new HttpHeaders();
-        headers.setLocation(uriComponents.toUri());
-
-        // All done
-        response = ResponseEntity.status(HttpStatus.CREATED).headers(headers).body(tenancyView);
-        return Mono.just(response);
-
-        // Next refactor - add links for other actions (GET, PATCH (confirm, reject))
     }
 
     /**
      * Attempt to patch a tenancy
      */
     @PatchMapping(value = "/tenancy/{id}")
-    public Mono<ResponseEntity<EntityModel<TenancyView>>> patchTenancy(
+    public Mono<ResponseEntity<TenancyView>> patchTenancy(
         @PathVariable String id,
         @RequestBody String body,
         UriComponentsBuilder uriBuilder)
     {
         logger.debug("Attempting to patch a tenancy from request body:\n" + body);
-        ResponseEntity<EntityModel<TenancyView>> response = null;
+        ResponseEntity<TenancyView> response = null;
 
         // Figure out the type of update
         //  - validate against a generic patch schema that checks the command is supported
@@ -257,74 +258,30 @@ public class TenancyController {
         }
         tenancyRepo.captureTenancyCommand(cmd.getCommandType(), cmd);
 
-        // Check pre-conditions for the command to succeed
+        //-------------------------------------------------------
+        // 2. Execute the command
+        //-------------------------------------------------------
         Tenancy t = null;
         try {
-            if ((t = this.tenancyRepo.getTenancy(id)) != null) {
-                try {
-                    cmd.checkPreConditions(t);
-                } catch (PreConditionException e) {
-                    logger.debug(e.getMessage());
-                    response = ResponseEntity.status(HttpStatus.CONFLICT).build();
-                    return Mono.just(response);
-                }
-
-                // OK - it can be actioned
-            } else {
-                logger.debug("Cannot patch tenancy " + id + " as it doesn't exist");
-                response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-                return Mono.just(response);
-            }
-        } catch (IOException e) {
-            String msg = "Unexpected failure reading tenancy with id: " + id;
-            logger.error(msg);
+            t = this.service.applyCommand(cmd);
+        } catch (UnsupportedOperationException | IOException e) {
+            logger.error(e.getMessage());
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             return Mono.just(response);
-        }
-
-        // Create and save an event - we've 'done' the command after this
-        TenancyEvent evt = cmd.createTenancyEvent(t);
-        tenancyRepo.captureEvent(evt.getEventType(), evt);
-
-        // Publish the event
-        logger.debug("Sending message...");
-        evt.addSerializerToModule(module);
-        mapper.registerModule(module);
-        String jsonEvt;
-        try {
-            jsonEvt = mapper.writeValueAsString(evt);
-            rabbitTemplate.convertAndSend(topicExchangeName, evt.getRoutingKey(), jsonEvt);
-        } catch (IOException e) {
-            logger.error("Error publishing tenancy confirmed event: " + e.getMessage());
-            // But carry on attempting to generate a response to the client
+        } catch (IllegalArgumentException | PreConditionException e) {
+            logger.info(e.getMessage());
+            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return Mono.just(response);
         }
 
         String hexId = t.getHexTenancyId();
-        EntityModel<TenancyView> tenancyView;
-        try {
-            tenancyView = EntityModel.of(t.getView());
-            try {
-                Method m = TenancyController.class.getMethod("getTenancy", String.class);
-                Link l = linkTo(m, id).withSelfRel();
-
-                tenancyView.add(l);
-            } catch (NoSuchMethodException e) {
-                logger.error("Failure generating HAL relations - please investigate.  TenancyId: " + hexId);
-                response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                return Mono.just(response);
-            }
-        } catch (Exception e) {
-            logger.error("Unexpected error getting tenancy details for response - please investigate: " + hexId);
-            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            return Mono.just(response);
-        }
 
         // Build a response (include the correct location)
         UriComponents uriComponents = uriBuilder.path("/tenancies/" + hexId).build();
         HttpHeaders headers =  new HttpHeaders();
         headers.setLocation(uriComponents.toUri());
 
-        response = ResponseEntity.status(HttpStatus.OK).headers(headers).body(tenancyView);
+        response = ResponseEntity.status(HttpStatus.OK).headers(headers).body(t.getView());
         return Mono.just(response);
     }
 
@@ -339,13 +296,13 @@ public class TenancyController {
      * @return A {@link uk.co.encity.tenancy.entity.TenancyView} represented as HAL-compliant JSON object
      */
     @GetMapping(value = "/tenancy/{tenancyId}", params = { "action", "uuid" })
-    public Mono<ResponseEntity<EntityModel<TenancyView>>> getUnconfirmedTenancy(
+    public Mono<ResponseEntity<TenancyView>> getUnconfirmedTenancy(
         @PathVariable String tenancyId,
         @RequestParam(value = "action") String action,
         @RequestParam(value = "uuid") String confirmUUID)
     {
         logger.debug("Received request to GET tenancy: " + tenancyId + " for confirmation purposes");
-        ResponseEntity<EntityModel<TenancyView>> response = null;
+        ResponseEntity<TenancyView> response = null;
 
         // retrieve the (logical) tenancy entity
         Tenancy target = null;
@@ -393,46 +350,60 @@ public class TenancyController {
             return Mono.just(response);
         }
 
-        // So far, so good - now add the necessary HAL relations
-        EntityModel<TenancyView> tenancyView;
-
-        try {
-            tenancyView = EntityModel.of(target.getView());
-
-            try {
-                Method m = TenancyController.class.getMethod("getUnconfirmedTenancy", String.class, String.class, String.class);
-                Link l = linkTo(m, tenancyId, action, confirmUUID).slash("?action=" + action + "&confirmUUID=" + confirmUUID).withSelfRel();
-
-                tenancyView.add(l);
-            } catch (NoSuchMethodException e) {
-                logger.error("Failure generating HAL relations - please investigate.  TenancyId: " + target.getHexTenancyId());
-                response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                return Mono.just(response);
-            }
-        }
-        catch (Exception e) {
-            logger.error("Unexpected error returning tenancy - please investigate: " + target.getHexTenancyId());
-            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            return Mono.just(response);
-        }
-
-        // There's some magic going here that merits further understanding.  The line below appears to
-        // convert the object to HAL-compliant JSON (must be functionality in EntityModel class)
-        response = ResponseEntity.status(HttpStatus.OK).body(tenancyView);
+        response = ResponseEntity.status(HttpStatus.OK).body(target.getView());
         return Mono.just(response);
     }
 
     /**
-     * Attempt to get tenancy info.  A tenancy is identified by its domain.
-     * @param domain the internet domain that identifies the tenancy
+     * Attempt to get tenancy info
+     * @param tenancyId the unique id that identifies the tenancy
      * @return  A Mono that wraps a ResponseEntity containing the response.  Possible
      *          response status codes are INTERNAL_SERVER_ERROR, OK, and NOT_FOUND.
      */
-    @GetMapping(value = "/tenancy/{domain}", params = {})
-    public Mono<ResponseEntity<String>> getTenancy(@PathVariable String domain) {
-        logger.debug("Attempting to GET tenancy: " + domain);
-        ResponseEntity<String> response = null;
-        response = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("");
+    @GetMapping(value = "/tenancy/{tenancyId}", params = { "availability"})
+    public Mono<ResponseEntity<TenancyView>> getTenancy(
+            @PathVariable String tenancyId,
+            @RequestParam(value = "availability") String availability) {
+        logger.debug("Received request to GET tenancy: " + tenancyId);
+
+        ResponseEntity<TenancyView> response = null;
+
+        // retrieve the (logical) tenancy entity
+        Tenancy target = null;
+        try {
+            target = this.tenancyRepo.getTenancy(tenancyId);
+            if (target == null) {
+                response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                return Mono.just(response);
+            }
+        } catch (IOException e) {
+            String msg = "Unexpected failure reading tenancy with id: " + tenancyId;
+            logger.error(msg);
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return Mono.just(response);
+        }
+
+        if (! availability.equals("operational")) {
+            logger.debug(String.format("Invalid request type: availability=%s", availability));
+            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return Mono.just(response);
+        }
+
+        // Is the tenancy confirmed?
+        if (! target.getTenantStatus().equals(TenancyTenantStatus.CONFIRMED)) {
+            logger.debug("Tenancy has invalid tenant status: " + tenancyId + ", status=" + target.getTenantStatus());
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return Mono.just(response);
+        }
+
+        // Has the tenancy been suspended?
+        if (! target.getProviderStatus().equals(TenancyProviderStatus.ACTIVE)) {
+            logger.debug("Cannot retrieve tenancy as it is not ACTIVE: " + tenancyId + ", status=" + target.getProviderStatus());
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return Mono.just(response);
+        }
+
+        response = ResponseEntity.status(HttpStatus.OK).body(target.getView());
         return Mono.just(response);
     }
 }

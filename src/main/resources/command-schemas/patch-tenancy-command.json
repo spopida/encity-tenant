@@ -7,7 +7,7 @@
   "properties" : {
     "action" : {
       "type": "string",
-      "enum": ["confirm", "reject"]
+      "enum": ["confirm", "reject", "change_portfolio"]
     },
     "details" : {
       "type": "object"
