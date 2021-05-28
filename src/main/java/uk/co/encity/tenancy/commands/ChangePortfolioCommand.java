@@ -30,4 +30,8 @@ public class ChangePortfolioCommand extends PatchTenancyCommand {
     public TenancyEvent createTenancyEvent(Tenancy t) {
         return new PortfolioChangedEvent(this, t, entityIds);
     }
+
+    public List<String> getEntityIds() {
+        return entityIds;
+    }
 }

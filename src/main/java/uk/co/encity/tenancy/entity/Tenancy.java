@@ -75,7 +75,7 @@ public class Tenancy {
     public String getConfirmUUIDString() { return this.confirmUUID.toString(); }
     public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
     public String getDomain() { return this.domain; }
-    public List<String> getDefaultPortfolio() { return this.getDefaultPortfolio(); }
+    public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
 
     /**
      * Get the derived (super) status - useful for simplifying some logic
@@ -111,7 +111,7 @@ public class Tenancy {
         this.tenantStatus = status;
     }
 
-    public void setDefaultPortfolio(List<String> newPortfolio) { this.setDefaultPortfolio(newPortfolio); }
+    public void setDefaultPortfolio(List<String> newPortfolio) { this.defaultPortfolio = newPortfolio; }
 
     public TenancyView getView() /*throws TenancyException*/ {
 
@@ -128,6 +128,7 @@ public class Tenancy {
         view.billingContact = this.getBillingContact();
         view.originalAdminUser = this.getOriginalAdminUser();
         view.tenantStatus = this.getTenantStatus().toString();
+        view.defaultPortfolio = this.getDefaultPortfolio();
 
         return view;
     }

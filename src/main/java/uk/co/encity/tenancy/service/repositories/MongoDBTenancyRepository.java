@@ -55,6 +55,7 @@ public class MongoDBTenancyRepository implements TenancyRepository {
         ClassModel<TenancyCreatedEvent> tenancyCreatedEventModel = ClassModel.builder(TenancyCreatedEvent.class).enableDiscriminator(true).build();
         ClassModel<TenancyConfirmedEvent> tenancyConfirmedEventModel = ClassModel.builder(TenancyConfirmedEvent.class).enableDiscriminator(true).build();
         ClassModel<TenancyRejectedEvent> tenancyRejectedEventModel = ClassModel.builder(TenancyRejectedEvent.class).enableDiscriminator(true).build();
+        ClassModel<PortfolioChangedEvent> portfolioChangedEventModel = ClassModel.builder(PortfolioChangedEvent.class).enableDiscriminator(true).build();
         // As an alternative to the above, we could probably use @BsonDiscriminator annotations on the classes concerned.  But
         // I don't see that being any 'better' than the above, and at least we are keeping these concerns inside the
         // repository implementation
@@ -63,7 +64,8 @@ public class MongoDBTenancyRepository implements TenancyRepository {
             tenancyEventModel,
             tenancyCreatedEventModel,
             tenancyConfirmedEventModel,
-            tenancyRejectedEventModel)
+            tenancyRejectedEventModel,
+            portfolioChangedEventModel)
             .build();
 
         CodecRegistry pojoCodecRegistry = fromProviders(
@@ -165,9 +167,14 @@ public class MongoDBTenancyRepository implements TenancyRepository {
 
     @Override
     public TenancySnapshot getLatestSnapshot(String id) {
-        ObjectId targetId = new ObjectId(id);
-        MongoCollection<TenancySnapshot> snapshots = db.getCollection("tenancy_snapshots").withDocumentClass(TenancySnapshot.class);
-        TenancySnapshot snap = snapshots.find(eq("tenancyId", targetId)).sort(new BasicDBObject("lastUpdate", -1)).first();
+        TenancySnapshot snap = null;
+        try {
+            ObjectId targetId = new ObjectId(id);
+            MongoCollection<TenancySnapshot> snapshots = db.getCollection("tenancy_snapshots").withDocumentClass(TenancySnapshot.class);
+            snap = snapshots.find(eq("tenancyId", targetId)).sort(new BasicDBObject("lastUpdate", -1)).first();
+        } catch (IllegalArgumentException e) {
+            ; // Swallow the exception and return null (i.e. not found)
+        }
 
         return snap;
     }

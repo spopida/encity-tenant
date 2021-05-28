@@ -4,12 +4,18 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import uk.co.encity.tenancy.commands.PatchTenancyCommand;
 import uk.co.encity.tenancy.entity.Tenancy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PortfolioChangedEvent extends TenancyEvent {
 
     private List<String> newPortfolio;
 
+    public PortfolioChangedEvent() {};
+
+    public void setNewPortfolio(ArrayList<String> newPortfolio) {
+        this.newPortfolio = newPortfolio;
+    }
     /**
      * Construct an event representing tenancy confirmation, using information
      * from the command that led to the event, and the pre-event version of the
@@ -23,6 +29,8 @@ public class PortfolioChangedEvent extends TenancyEvent {
                 current.getTenancyId(),
                 current.getVersion() + 1,
                 cmd.getCommandId());
+
+        this.newPortfolio = newPortfolio;
     }
 
     public List<String> getNewPortfolio() {
@@ -37,7 +45,7 @@ public class PortfolioChangedEvent extends TenancyEvent {
 
     @Override
     public void addSerializerToModule(SimpleModule module) {
-
+        module.addSerializer(this.getClass(), new PortfolioChangedEventSerializer());
     }
 
     @Override

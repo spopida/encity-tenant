@@ -76,6 +76,7 @@ public class TenancyService {
         switch (command.getCmdType()) {
             case CONFIRM_TENANCY:
             case REJECT_TENANCY:
+            case CHANGE_PORTFOLIO:
                 // No special actions (yet!)- the event will be saved (below)
                 break;
             default:
