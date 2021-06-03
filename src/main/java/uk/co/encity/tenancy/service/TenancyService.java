@@ -54,7 +54,8 @@ public class TenancyService {
      * @return the affected Tenancy
      */
     // TODO: distinguish between tenancy-initiated transitions/states and provider-initiated ones
-    public Tenancy applyCommand(PatchTenancyCommand command) throws
+    public Tenancy applyCommand(PatchTenancyCommand command, SimpleModule module, ObjectMapper mapper) throws
+    //public Tenancy applyCommand(PatchTenancyCommand command) throws
             UnsupportedOperationException,
             IllegalArgumentException,
             PreConditionException,
@@ -88,14 +89,16 @@ public class TenancyService {
         this.repository.captureEvent(evt.getEventType(), evt);
 
         // Publish the event
-        SimpleModule module = new SimpleModule();
+        //SimpleModule module = new SimpleModule();
         this.getLogger().debug("Sending message...");
         evt.addSerializerToModule(module);
-        this.mapper.registerModule(module);
+        mapper.registerModule(module);
+        //this.mapper.registerModule(module);
 
         String jsonEvt;
 
-        jsonEvt = this.getMapper().writeValueAsString(evt);
+        jsonEvt = mapper.writeValueAsString(evt);
+        //jsonEvt = this.getMapper().writeValueAsString(evt);
         this.getAmqpTemplate().convertAndSend(this.getTopicExchangeName(), evt.getRoutingKey(), jsonEvt);
 
         return theTenancy;

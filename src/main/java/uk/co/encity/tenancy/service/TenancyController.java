@@ -263,7 +263,8 @@ public class TenancyController {
         //-------------------------------------------------------
         Tenancy t = null;
         try {
-            t = this.service.applyCommand(cmd);
+            t = this.service.applyCommand(cmd, module, mapper);
+            //t = this.service.applyCommand(cmd);
         } catch (UnsupportedOperationException | IOException e) {
             logger.error(e.getMessage());
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
