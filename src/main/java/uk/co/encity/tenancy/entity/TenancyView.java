@@ -20,6 +20,7 @@ public class TenancyView {
     public String tenantStatus;
     public String domain;
     public List<String> defaultPortfolio;
+    public boolean isHmrcVatEnabled;
 
     protected TenancyView() {
         ;

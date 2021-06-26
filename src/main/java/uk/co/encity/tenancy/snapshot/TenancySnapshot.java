@@ -40,6 +40,7 @@ public class TenancySnapshot {
     private UUID confirmUUID;
     private Instant confirmExpiryTime;
     private List<String> defaultPortfolio;
+    private boolean hmrcVatEnabled;
 
     public TenancySnapshot(TenancyCreatedEvent evt) {
         this.snapshotId = new ObjectId();
@@ -56,6 +57,7 @@ public class TenancySnapshot {
         this.confirmUUID = evt.getConfirmUUID();
         this.confirmExpiryTime = evt.getExpiryTime();
         this.defaultPortfolio = new ArrayList<String>();
+        this.hmrcVatEnabled = false;
     }
 
     /**
@@ -81,6 +83,7 @@ public class TenancySnapshot {
     public UUID getConfirmUUID() { return this.confirmUUID; }
     public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
     public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
+    public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
 
     @BsonIgnore public String getDomain() {
         String parts[] = this.authorisedContact.getEmailAddress().split("@");
@@ -103,4 +106,5 @@ public class TenancySnapshot {
     public void setConfirmUUID(UUID uuid) { this.confirmUUID = uuid; }
     public void setConfirmExpiryTime(Instant time) { this.confirmExpiryTime = time; }
     public void setDefaultPortfolio(List<String> entityIds) { this.defaultPortfolio = entityIds; }
+    public void setHmrcVatEnabled(boolean enabled) { this.hmrcVatEnabled = enabled; }
 }

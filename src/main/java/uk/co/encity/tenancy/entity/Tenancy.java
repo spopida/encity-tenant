@@ -37,6 +37,7 @@ public class Tenancy {
     private Instant confirmExpiryTime;
     private String domain;
     private List<String> defaultPortfolio;
+    private boolean hmrcVatEnabled;
 
     public Tenancy() {}
 
@@ -56,6 +57,7 @@ public class Tenancy {
         t.confirmExpiryTime = snap.getConfirmExpiryTime();
         t.domain = snap.getDomain();
         t.defaultPortfolio = snap.getDefaultPortfolio();
+        t.hmrcVatEnabled = snap.isHmrcVatEnabled();
 
         return t;
     }
@@ -76,6 +78,7 @@ public class Tenancy {
     public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
     public String getDomain() { return this.domain; }
     public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
+    public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
 
     /**
      * Get the derived (super) status - useful for simplifying some logic
@@ -113,7 +116,7 @@ public class Tenancy {
 
     public void setDefaultPortfolio(List<String> newPortfolio) { this.defaultPortfolio = newPortfolio; }
 
-    public TenancyView getView() /*throws TenancyException*/ {
+    public TenancyView getView() {
 
         // Make sure to use getters, not instance vars (there could be logic in them)
 
@@ -129,6 +132,8 @@ public class Tenancy {
         view.originalAdminUser = this.getOriginalAdminUser();
         view.tenantStatus = this.getTenantStatus().toString();
         view.defaultPortfolio = this.getDefaultPortfolio();
+        view.isHmrcVatEnabled = this.isHmrcVatEnabled();
+        view.domain = this.getDomain();
 
         return view;
     }
