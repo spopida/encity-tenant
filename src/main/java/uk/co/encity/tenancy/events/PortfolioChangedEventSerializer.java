@@ -20,9 +20,9 @@ public class PortfolioChangedEventSerializer extends StdSerializer<PortfolioChan
     public void serialize(PortfolioChangedEvent event, JsonGenerator jGen, SerializerProvider serializerProvider)
             throws IOException {
         jGen.writeStartObject();
-        event.writeJson(jGen);
-        jGen.writeFieldName("newPortfolio");
-        jGen.writeObject(event.getNewPortfolio());
+        event.writeCommonJson(jGen);
+        jGen.writeObjectField("newPortfolio", event.getNewPortfolio());
+        jGen.writeObjectField("newPortfolioDetials", event.getNewPortfolioDetails());
         jGen.writeEndObject();
     }
 }

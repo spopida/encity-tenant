@@ -22,7 +22,7 @@ public class TenancyConfirmedEventSerializer extends StdSerializer<TenancyConfir
             throws IOException, JsonProcessingException {
 
         jGen.writeStartObject();
-        value.writeJson(jGen);
+        value.writeCommonJson(jGen);
         jGen.writeFieldName("originalAdminUser");
         jGen.writeObject(value.getOriginalAdminUser());
         jGen.writeFieldName("domain");

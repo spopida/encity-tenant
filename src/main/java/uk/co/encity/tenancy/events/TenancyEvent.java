@@ -129,7 +129,7 @@ public abstract class TenancyEvent {
      * @throws IOException
      * @throws JsonProcessingException
      */
-    protected void writeJson(JsonGenerator jGen) throws IOException, JsonProcessingException {
+    protected void writeCommonJson(JsonGenerator jGen) throws IOException, JsonProcessingException {
         jGen.writeFieldName("eventId");
         jGen.writeString(this.getEventId().toHexString());
         jGen.writeFieldName("eventType");

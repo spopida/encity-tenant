@@ -1,6 +1,5 @@
 package uk.co.encity.tenancy.entity;
 
-import ch.qos.logback.core.joran.conditional.ThenAction;
 import org.bson.types.ObjectId;
 import org.springframework.lang.NonNull;
 import reactor.util.Logger;
@@ -8,9 +7,9 @@ import reactor.util.Loggers;
 import uk.co.encity.tenancy.components.TenancyContact;
 import uk.co.encity.tenancy.snapshot.TenancySnapshot;
 
-import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class Tenancy {
@@ -38,6 +37,7 @@ public class Tenancy {
     private String domain;
     private List<String> defaultPortfolio;
     private boolean hmrcVatEnabled;
+    private Map<String, VatSettings> portfolioDetails;
 
     public Tenancy() {}
 
@@ -79,6 +79,7 @@ public class Tenancy {
     public String getDomain() { return this.domain; }
     public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
+    public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
 
     /**
      * Get the derived (super) status - useful for simplifying some logic
@@ -116,6 +117,8 @@ public class Tenancy {
 
     public void setDefaultPortfolio(List<String> newPortfolio) { this.defaultPortfolio = newPortfolio; }
 
+    public void setPortfolioDetails(Map<String, VatSettings> portfolioDetails) { this.portfolioDetails = portfolioDetails; }
+
     public TenancyView getView() {
 
         // Make sure to use getters, not instance vars (there could be logic in them)
@@ -134,6 +137,7 @@ public class Tenancy {
         view.defaultPortfolio = this.getDefaultPortfolio();
         view.isHmrcVatEnabled = this.isHmrcVatEnabled();
         view.domain = this.getDomain();
+        view.portfolioDetails = this.getPortfolioDetails();
 
         return view;
     }

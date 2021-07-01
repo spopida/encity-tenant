@@ -22,7 +22,7 @@ public class TenancyRejectedEventSerializer extends StdSerializer<TenancyRejecte
             throws IOException, JsonProcessingException {
 
         jGen.writeStartObject();
-        value.writeJson(jGen);
+        value.writeCommonJson(jGen);
         jGen.writeEndObject();
     }
 }

@@ -3,6 +3,7 @@ package uk.co.encity.tenancy.entity;
 import uk.co.encity.tenancy.components.TenancyContact;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A simple view of a {@link Tenancy} that only shows what should be visible
@@ -21,6 +22,7 @@ public class TenancyView {
     public String domain;
     public List<String> defaultPortfolio;
     public boolean isHmrcVatEnabled;
+    public Map<String, VatSettings> portfolioDetails;
 
     protected TenancyView() {
         ;

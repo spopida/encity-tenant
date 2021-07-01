@@ -6,11 +6,13 @@ import org.bson.types.ObjectId;
 import uk.co.encity.tenancy.components.TenancyContact;
 import uk.co.encity.tenancy.entity.TenancyProviderStatus;
 import uk.co.encity.tenancy.entity.TenancyTenantStatus;
+import uk.co.encity.tenancy.entity.VatSettings;
 import uk.co.encity.tenancy.events.TenancyCreatedEvent;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -42,6 +44,17 @@ public class TenancySnapshot {
     private List<String> defaultPortfolio;
     private boolean hmrcVatEnabled;
 
+    /**
+     * A {@link Map} of VAT Settings containing an entry for each company in the defaultPortfolio
+     */
+    private Map<String, VatSettings> portfolioDetails;
+
+    /**
+     * To be added - an Access Token structure (map?) for the different types of access needed
+     * to different APIs.  This could get complex, but initially it will just need to hold
+     * whatever tokens are needed for VAT purposes.
+     */
+
     public TenancySnapshot(TenancyCreatedEvent evt) {
         this.snapshotId = new ObjectId();
         this.tenancyId = evt.getTenancyId();
@@ -58,6 +71,7 @@ public class TenancySnapshot {
         this.confirmExpiryTime = evt.getExpiryTime();
         this.defaultPortfolio = new ArrayList<String>();
         this.hmrcVatEnabled = false;
+        this.portfolioDetails = null;
     }
 
     /**
@@ -84,6 +98,7 @@ public class TenancySnapshot {
     public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
     public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
+    public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
 
     @BsonIgnore public String getDomain() {
         String parts[] = this.authorisedContact.getEmailAddress().split("@");
@@ -107,4 +122,5 @@ public class TenancySnapshot {
     public void setConfirmExpiryTime(Instant time) { this.confirmExpiryTime = time; }
     public void setDefaultPortfolio(List<String> entityIds) { this.defaultPortfolio = entityIds; }
     public void setHmrcVatEnabled(boolean enabled) { this.hmrcVatEnabled = enabled; }
+    public void setPortfolioDetails(Map<String, VatSettings> details) { this.portfolioDetails = details; }
 }
