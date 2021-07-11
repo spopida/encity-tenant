@@ -7,7 +7,12 @@
   "properties" : {
     "action" : {
       "type": "string",
-      "enum": ["confirm", "reject", "change_portfolio"]
+      "enum": [
+        "confirm",
+        "reject",
+        "change_portfolio",
+        "change_hmrc_vat_enablement",
+        "multi_patch"]
     },
     "details" : {
       "type": "object"

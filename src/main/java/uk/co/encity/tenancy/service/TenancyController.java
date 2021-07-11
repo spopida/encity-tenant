@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -35,6 +37,8 @@ import uk.co.encity.tenancy.events.*;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A RESTful web controller that supports actions relating to Tenancies.  A Tenancy is an organisation with one or more
@@ -43,6 +47,11 @@ import java.time.Instant;
 @CrossOrigin
 @RestController
 public class TenancyController {
+
+    /**
+     * The name of the schema for a patch command
+     */
+    private static final String patchTenancyCommandSchema = "command-schemas/patch-tenancy-command.json";
 
     /**
      * The name of the AMQP exchange used for message publication
@@ -205,6 +214,170 @@ public class TenancyController {
     }
 
     /**
+     * Patch a tenancy with a 'package' of events. A multi-patch looks like this:
+     * {
+     *    action: "multi_patch",
+     *    patches: [
+     *      {
+     *          action: "change_hmrc_vat_enablement",
+     *          isHmrcVatEnabled: true
+     *      },
+     *      {
+     *          action: "some_other_action",
+     *          attrName: attrValue
+     *      }
+     *    ]
+     * }
+     *
+     * Inside the array, the objects have the same same structure as those that could be sent to the individual patch
+     * endpoint.
+     *
+     * Note that the best we can do if some of the patches fail, but others succeed, is to return a 202.  It's not
+     * ideal because 202 is intended for use in deferred processing, but it's better than sending a 200 (which has
+     * no room for doubt - everthing is tickety boo).  In THIS context I'm using 202 to mean partial success + partial
+     * failure.
+     *
+     * Note also that we only expect one action of a given type.  This means we can key any breakdown of action-specific
+     * results (e.g. errors), on the action name
+     *
+     * We should validate the multi_patch according to this expectation though.
+     */
+    @PatchMapping(value = "/tenancy/{id}", params = { "multi" })
+    public Mono<ResponseEntity<TenancyView>> multiPatchTenancy(
+            @PathVariable String id,
+            @RequestBody String body,
+            UriComponentsBuilder uriBuilder)
+    {
+        logger.debug("Attempting a multi-patch");
+
+        // Iterate through the array of patches and call a single patch.  Gather up the responses so that we can
+        // decide what the aggregate response should be at the end
+
+        ResponseEntity<TenancyView> response = null;
+
+        //------------------------------------------------
+        // 1. Check the container against the patch schema
+        //------------------------------------------------
+
+        JSONObject multiPatch = null;
+
+        try {
+            multiPatch = this.validatePatchBody(body);
+        } catch (ValidationException e) {
+            logger.warn("Incoming request body does NOT validate against patch schema; potential API mis-use!");
+            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return Mono.just(response);
+        }
+
+        Tenancy t = null;
+        Map<String, HttpStatus> results = new HashMap<String, HttpStatus>();
+
+        //--------------------------------------------------------------------------
+        // 2. Iterate through the array of patches and call a single patch each time
+        //--------------------------------------------------------------------------
+
+        JSONArray patchArray = multiPatch.getJSONArray("patches");
+
+        int patchesDiscarded = 0;           // The number of patches that had to be discarded as invalid
+        int internalError = 0, badRequest = 0;
+
+        JSONObject innerPatchJson = null;
+
+        for (Object patchObj : patchArray) {
+            try {
+                innerPatchJson = validatePatchBody(patchObj.toString());
+            } catch (ValidationException e) {
+                logger.warn("Incoming request body does NOT validate against patch schema; potential API mis-use!");
+                patchesDiscarded++;
+                continue;
+            }
+
+            String innerPatchType = innerPatchJson.get("action").toString();
+
+            try {
+                t = handlePatch(id, patchObj.toString());
+                results.put(innerPatchType, HttpStatus.OK);
+            } catch (UnsupportedOperationException | IOException e) {
+                logger.error(e.getMessage());
+                results.put(innerPatchType, HttpStatus.INTERNAL_SERVER_ERROR);
+                internalError++;
+            } catch (IllegalArgumentException | PreConditionException e) {
+                logger.info(e.getMessage());
+                results.put(innerPatchType, HttpStatus.BAD_REQUEST);
+                badRequest++;
+            }
+        }
+
+        //----------------------------------
+        // 3. Generate an aggregate response
+        //----------------------------------
+        HttpStatus status = HttpStatus.OK;
+        if (patchesDiscarded == patchArray.length()) {
+            status = HttpStatus.BAD_REQUEST;
+        } else if (internalError == patchArray.length()) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } else if (badRequest == patchArray.length()) {
+            status = HttpStatus.BAD_REQUEST;
+        } else if (internalError > 0 || badRequest > 0) {
+            status = HttpStatus.ACCEPTED;
+        }
+
+        // Build a response (include the correct location)
+        UriComponents uriComponents = uriBuilder.path("/tenancies/" + id).build();
+        HttpHeaders headers =  new HttpHeaders();
+        headers.setLocation(uriComponents.toUri());
+
+        if ( t == null ){
+            response = ResponseEntity.status(status).build();
+            return Mono.just(response);
+        } else {
+            response = ResponseEntity.status(status).headers(headers).body(t.getView());
+            return Mono.just(response);
+        }
+    }
+
+    private JSONObject validatePatchBody(String body) throws ValidationException {
+        Schema schema = SchemaLoader.load(
+                new JSONObject(
+                        new JSONTokener(requireNonNull(getClass().getClassLoader().getResourceAsStream(patchTenancyCommandSchema)))
+                )
+        );
+        JSONObject patch = new JSONObject(new JSONTokener(body));
+        schema.validate(patch);
+        logger.debug("Incoming patch request contains valid request type");
+        // As we add more transitions, additional validation will be needed here
+        return patch;
+    }
+
+    private Tenancy handlePatch(String tenancyId, String patchBody) throws
+            IllegalArgumentException,
+            PreConditionException,
+            IOException,
+            UnsupportedOperationException
+    {
+        // De-serialise the command into an object and store it
+        PatchTenancyCommand cmd = null;
+
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(PatchTenancyCommand.class, new PatchTenancyCommandDeserializer(tenancyId));
+        mapper.registerModule(module);
+
+        cmd = mapper.readValue(patchBody, PatchTenancyCommand.class);
+        logger.debug("Patch tenancy command de-serialised successfully");
+
+        tenancyRepo.captureTenancyCommand(cmd.getCommandType(), cmd);
+
+        //-------------------------------------------------------
+        // 2. Execute the command
+        //-------------------------------------------------------
+        Tenancy t = this.service.applyCommand(cmd, module, mapper);
+        //t = this.service.applyCommand(cmd);
+
+        return t;
+    }
+
+    /**
      * Attempt to patch a tenancy
      */
     @PatchMapping(value = "/tenancy/{id}")
@@ -213,6 +386,7 @@ public class TenancyController {
         @RequestBody String body,
         UriComponentsBuilder uriBuilder)
     {
+        // TODO: REFACTOR - validatePatchBody, handlePatch
         logger.debug("Attempting to patch a tenancy from request body:\n" + body);
         ResponseEntity<TenancyView> response = null;
 
