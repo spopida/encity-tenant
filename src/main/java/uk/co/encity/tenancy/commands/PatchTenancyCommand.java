@@ -37,7 +37,7 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
     public static PatchTenancyCommand getPatchTenancyCommand(
             @NonNull TenancyCommand.TenancyTenantCommandType cmdtype,
             String hexTenancyId,
-            JsonNode node) throws JsonProcessingException {
+            JsonNode node) throws UnsupportedOperationException, JsonProcessingException {
         PatchTenancyCommand patchCmd = null;
 
         switch (cmdtype) {
@@ -67,10 +67,15 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
                 );
 
                 patchCmd = new ChangePortfolioCommand(hexTenancyId, entityIds, portDetails);
+                break;
+            case CHANGE_HMRC_VAT_ENABLEMENT:
+                // Get the new value out of the JSON and create a new command
+                boolean value = node.get("isHmrcVatEnabled").booleanValue();
+                patchCmd = new ChangeHmrcVatEnablementCommand(hexTenancyId, value);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported command: " + cmdtype );
         }
-
-        // TODO: should really throw an exception for unsupported command type instead of leaving it to the caller
-        // to detect a null command
 
         return patchCmd;
     }

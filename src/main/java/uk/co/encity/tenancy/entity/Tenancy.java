@@ -119,6 +119,8 @@ public class Tenancy {
 
     public void setPortfolioDetails(Map<String, VatSettings> portfolioDetails) { this.portfolioDetails = portfolioDetails; }
 
+    public void setHmrcVatEnabled(boolean value) { this.hmrcVatEnabled = value; }
+
     public TenancyView getView() {
 
         // Make sure to use getters, not instance vars (there could be logic in them)
@@ -138,6 +140,7 @@ public class Tenancy {
         view.isHmrcVatEnabled = this.isHmrcVatEnabled();
         view.domain = this.getDomain();
         view.portfolioDetails = this.getPortfolioDetails();
+        view.isHmrcVatEnabled = this.isHmrcVatEnabled();
 
         return view;
     }

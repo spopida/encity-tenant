@@ -22,7 +22,7 @@ public class PortfolioChangedEventSerializer extends StdSerializer<PortfolioChan
         jGen.writeStartObject();
         event.writeCommonJson(jGen);
         jGen.writeObjectField("newPortfolio", event.getNewPortfolio());
-        jGen.writeObjectField("newPortfolioDetials", event.getNewPortfolioDetails());
+        jGen.writeObjectField("newPortfolioDetails", event.getNewPortfolioDetails());
         jGen.writeEndObject();
     }
 }

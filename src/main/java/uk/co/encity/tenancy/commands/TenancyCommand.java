@@ -18,7 +18,8 @@ public abstract class TenancyCommand {
         CONFIRM_TENANCY,
         REJECT_TENANCY,
         CANCEL_TENANCY_CLOSURE,
-        CHANGE_PORTFOLIO
+        CHANGE_PORTFOLIO,
+        CHANGE_HMRC_VAT_ENABLEMENT
     }
 
     protected static final Map<String, TenancyTenantCommandType> ACTION_MAP;
@@ -28,6 +29,7 @@ public abstract class TenancyCommand {
         ACTION_MAP.put("confirm", TenancyTenantCommandType.valueOf("CONFIRM_TENANCY"));
         ACTION_MAP.put("reject", TenancyTenantCommandType.valueOf("REJECT_TENANCY"));
         ACTION_MAP.put( "change_portfolio", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO"));
+        ACTION_MAP.put("change_hmrc_vat_enablement", TenancyTenantCommandType.valueOf("CHANGE_HMRC_VAT_ENABLEMENT"));
     }
 
     // Defines the commands that the Provider may perform on a Tenancy
