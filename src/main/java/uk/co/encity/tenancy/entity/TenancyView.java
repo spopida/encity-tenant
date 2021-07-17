@@ -23,6 +23,11 @@ public class TenancyView {
     public List<String> defaultPortfolio;
     public boolean isHmrcVatEnabled;
     public Map<String, VatSettings> portfolioDetails;
+    public boolean isHmrcVatAuthorisationRequestPending;
+
+    //TODO: lastHmrcAuthorisation will be the creation datetime of the _AUTHORISED event.
+    // When that event is applied, this attribute will be updated.  The nextExpectedAuthorisation
+    // will be derived purely through logic, but this will be done here, not in a front-end
 
     protected TenancyView() {
         ;

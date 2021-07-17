@@ -12,6 +12,9 @@
         "reject",
         "change_portfolio",
         "change_hmrc_vat_enablement",
+        "request_hmrc_vat_authorisation",
+        "authorise_hmrc_vat",
+        "capture_hmrc_vat_access_token",
         "multi_patch"]
     },
     "details" : {

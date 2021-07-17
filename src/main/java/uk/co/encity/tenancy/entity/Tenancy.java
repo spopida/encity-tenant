@@ -38,6 +38,8 @@ public class Tenancy {
     private List<String> defaultPortfolio;
     private boolean hmrcVatEnabled;
     private Map<String, VatSettings> portfolioDetails;
+    private boolean hmrcVatAuthorisationRequestPending;
+    private UUID hmrcVatAuthorisationRequestUUID;
 
     public Tenancy() {}
 
@@ -58,6 +60,8 @@ public class Tenancy {
         t.domain = snap.getDomain();
         t.defaultPortfolio = snap.getDefaultPortfolio();
         t.hmrcVatEnabled = snap.isHmrcVatEnabled();
+        t.hmrcVatAuthorisationRequestPending = snap.isHmrcVatAuthorisationRequestPending();
+        t.hmrcVatAuthorisationRequestUUID = snap.getHmrcVatAuthorisationRequestUUID();
 
         return t;
     }
@@ -80,6 +84,8 @@ public class Tenancy {
     public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
+    public boolean isHmrcVatAuthorisationRequestPending() { return this.hmrcVatAuthorisationRequestPending; }
+    public UUID getHmrcVatAuthorisationRequestUUID() { return this.hmrcVatAuthorisationRequestUUID; }
 
     /**
      * Get the derived (super) status - useful for simplifying some logic
@@ -121,6 +127,10 @@ public class Tenancy {
 
     public void setHmrcVatEnabled(boolean value) { this.hmrcVatEnabled = value; }
 
+    public void setHmrcVatAuthorisationRequestPending(boolean value) { this.hmrcVatAuthorisationRequestPending = value; }
+
+    public void setHmrcVatAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAuthorisationRequestUUID = uuid; }
+
     public TenancyView getView() {
 
         // Make sure to use getters, not instance vars (there could be logic in them)
@@ -141,6 +151,7 @@ public class Tenancy {
         view.domain = this.getDomain();
         view.portfolioDetails = this.getPortfolioDetails();
         view.isHmrcVatEnabled = this.isHmrcVatEnabled();
+        view.isHmrcVatAuthorisationRequestPending = this.isHmrcVatAuthorisationRequestPending();
 
         return view;
     }

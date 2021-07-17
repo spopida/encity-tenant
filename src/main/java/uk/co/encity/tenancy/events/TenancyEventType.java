@@ -3,7 +3,6 @@ package uk.co.encity.tenancy.events;
 // All the events that may have occurred on a Tenancy (as a result of commands)
 public enum TenancyEventType {
     TENANCY_CREATED,
-    TENANCY_AUTHORIZER_NOTIFIED,
     TENANCY_UPDATED,
     TENANCY_CLOSED,
     TENANCY_CONFIRMED,
@@ -13,6 +12,7 @@ public enum TenancyEventType {
     TENANCY_RELEASED,
     TENANCY_STOPPED,
     PORTFOLIO_CHANGED,
-    HMRC_VAT_ENABLEMENT_CHANGED
+    HMRC_VAT_ENABLEMENT_CHANGED,
+    HMRC_VAT_AUTHORISATION_REQUESTED
 }
 

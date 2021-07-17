@@ -43,6 +43,8 @@ public class TenancySnapshot {
     private Instant confirmExpiryTime;
     private List<String> defaultPortfolio;
     private boolean hmrcVatEnabled;
+    private boolean hmrcVatAuthorisationRequestPending;
+    private UUID hmrcVatAuthorisationRequestUUID;
 
     /**
      * A {@link Map} of VAT Settings containing an entry for each company in the defaultPortfolio
@@ -72,6 +74,8 @@ public class TenancySnapshot {
         this.defaultPortfolio = new ArrayList<String>();
         this.hmrcVatEnabled = false;
         this.portfolioDetails = null;
+        this.hmrcVatAuthorisationRequestPending = false;
+        this.hmrcVatAuthorisationRequestUUID = null;
     }
 
     /**
@@ -99,6 +103,8 @@ public class TenancySnapshot {
     public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
+    public boolean isHmrcVatAuthorisationRequestPending() { return this.hmrcVatAuthorisationRequestPending; }
+    public UUID getHmrcVatAuthorisationRequestUUID() { return this.hmrcVatAuthorisationRequestUUID; }
 
     @BsonIgnore public String getDomain() {
         String parts[] = this.authorisedContact.getEmailAddress().split("@");
@@ -123,4 +129,6 @@ public class TenancySnapshot {
     public void setDefaultPortfolio(List<String> entityIds) { this.defaultPortfolio = entityIds; }
     public void setHmrcVatEnabled(boolean enabled) { this.hmrcVatEnabled = enabled; }
     public void setPortfolioDetails(Map<String, VatSettings> details) { this.portfolioDetails = details; }
+    public void setHmrcVatAuthorisationRequestPending(boolean pending) { this.hmrcVatAuthorisationRequestPending = pending; }
+    public void setHmrcVatAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAuthorisationRequestUUID = uuid; }
 }
