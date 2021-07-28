@@ -45,6 +45,7 @@ public class TenancySnapshot {
     private boolean hmrcVatEnabled;
     private boolean hmrcVatAuthorisationRequestPending;
     private UUID hmrcVatAuthorisationRequestUUID;
+    private Instant hmrcVatLastAuthorisedAt;
 
     /**
      * A {@link Map} of VAT Settings containing an entry for each company in the defaultPortfolio
@@ -76,6 +77,7 @@ public class TenancySnapshot {
         this.portfolioDetails = null;
         this.hmrcVatAuthorisationRequestPending = false;
         this.hmrcVatAuthorisationRequestUUID = null;
+        this.hmrcVatLastAuthorisedAt = Instant.MIN;
     }
 
     /**
@@ -105,6 +107,8 @@ public class TenancySnapshot {
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
     public boolean isHmrcVatAuthorisationRequestPending() { return this.hmrcVatAuthorisationRequestPending; }
     public UUID getHmrcVatAuthorisationRequestUUID() { return this.hmrcVatAuthorisationRequestUUID; }
+    public Instant getHmrcVatLastAuthorisedAt() {
+        return (this.hmrcVatLastAuthorisedAt == null ? Instant.MIN : this.hmrcVatLastAuthorisedAt); }
 
     @BsonIgnore public String getDomain() {
         String parts[] = this.authorisedContact.getEmailAddress().split("@");
@@ -131,4 +135,7 @@ public class TenancySnapshot {
     public void setPortfolioDetails(Map<String, VatSettings> details) { this.portfolioDetails = details; }
     public void setHmrcVatAuthorisationRequestPending(boolean pending) { this.hmrcVatAuthorisationRequestPending = pending; }
     public void setHmrcVatAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAuthorisationRequestUUID = uuid; }
+    public void setHmrcVatLastAuthorisedAt(Instant time) {
+        this.hmrcVatLastAuthorisedAt = ( time == null ? Instant.MIN : time );
+    }
 }

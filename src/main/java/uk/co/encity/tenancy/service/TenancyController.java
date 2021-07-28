@@ -166,8 +166,10 @@ public class TenancyController {
 
         if (this.tenancyRepo.tenancyExists(domain)) {
             logger.debug("Rejecting request to create existing tenancy for domain " + domain);
-            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-            return Mono.just(response);
+            ResponseEntity r = new ResponseEntity<>("The domain of the authorised contact already has an account", HttpStatus.BAD_REQUEST);
+            return Mono.just(r);
+            /* response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return Mono.just(response); */
         } else {
             logger.debug("Tenancy for domain " + domain + " does not exist - OK to create...");
         }

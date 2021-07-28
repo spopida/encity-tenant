@@ -79,6 +79,7 @@ public class TenancyService {
             case REJECT_TENANCY:
             case CHANGE_PORTFOLIO:
             case CHANGE_HMRC_VAT_ENABLEMENT:
+            case REQUEST_HMRC_VAT_AUTHORISATION:
                 // No special actions (yet!)- the event will be saved (below)
                 break;
             default:

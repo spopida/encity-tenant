@@ -40,6 +40,7 @@ public class Tenancy {
     private Map<String, VatSettings> portfolioDetails;
     private boolean hmrcVatAuthorisationRequestPending;
     private UUID hmrcVatAuthorisationRequestUUID;
+    private Instant hmrcVatLastAuthorisedAt;
 
     public Tenancy() {}
 
@@ -62,6 +63,7 @@ public class Tenancy {
         t.hmrcVatEnabled = snap.isHmrcVatEnabled();
         t.hmrcVatAuthorisationRequestPending = snap.isHmrcVatAuthorisationRequestPending();
         t.hmrcVatAuthorisationRequestUUID = snap.getHmrcVatAuthorisationRequestUUID();
+        t.hmrcVatLastAuthorisedAt = snap.getHmrcVatLastAuthorisedAt();
 
         return t;
     }
@@ -86,6 +88,7 @@ public class Tenancy {
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
     public boolean isHmrcVatAuthorisationRequestPending() { return this.hmrcVatAuthorisationRequestPending; }
     public UUID getHmrcVatAuthorisationRequestUUID() { return this.hmrcVatAuthorisationRequestUUID; }
+    public Instant getHmrcVatLastAuthorisedAt() { return this.hmrcVatLastAuthorisedAt; }
 
     /**
      * Get the derived (super) status - useful for simplifying some logic
@@ -131,6 +134,8 @@ public class Tenancy {
 
     public void setHmrcVatAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAuthorisationRequestUUID = uuid; }
 
+    public void setHmrcVatLastAuthorisedAt(Instant time) { this.hmrcVatLastAuthorisedAt = time; }
+
     public TenancyView getView() {
 
         // Make sure to use getters, not instance vars (there could be logic in them)
@@ -152,6 +157,7 @@ public class Tenancy {
         view.portfolioDetails = this.getPortfolioDetails();
         view.isHmrcVatEnabled = this.isHmrcVatEnabled();
         view.isHmrcVatAuthorisationRequestPending = this.isHmrcVatAuthorisationRequestPending();
+        view.lastHmrcAuthorisation = this.getHmrcVatLastAuthorisedAt().toString();
 
         return view;
     }
