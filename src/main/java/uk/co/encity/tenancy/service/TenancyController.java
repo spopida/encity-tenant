@@ -462,20 +462,75 @@ public class TenancyController {
         return Mono.just(response);
     }
 
+    @GetMapping(value = "/tenancy/{tenancyId}/authorise-hmrc", params = { "uuid" })
+    public Mono<ResponseEntity<TenancyView>> getTenancyForHmrcAuthorisation(
+        @PathVariable String tenancyId,
+        @RequestParam(value = "uuid") String requestUUID)
+    {
+        logger.debug("Received request to GET tenancy: " + tenancyId + " for HMRC authorisation purposes");
+        ResponseEntity<TenancyView> response = null;
+
+        // retrieve the (logical) tenancy entity
+        Tenancy target = null;
+        try {
+            target = this.tenancyRepo.getTenancy(tenancyId);
+            if (target == null) {
+                response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                return Mono.just(response);
+            }
+        } catch (IOException e) {
+            String msg = "Unexpected failure reading tenancy with id: " + tenancyId;
+            logger.error(msg);
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return Mono.just(response);
+        }
+
+        // Is there a pending authorisation request?
+        if (! target.isHmrcVatAuthorisationRequestPending()) {
+            logger.debug("Cannot authorise HMRC access for the tenancy as there is no pending request: " + tenancyId);
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return Mono.just(response);
+        }
+
+        // Does the UUID match?
+        if (! target.getHmrcVatAuthorisationRequestUUIDString().equals(requestUUID)) {
+            logger.warn(
+                    "Attempt to authorise HMRC access for a tenancy with mis-matched UUIDs.  Incoming: " + requestUUID + ", target=" + target.getHmrcVatAuthorisationRequestUUID() + ".\n" +
+                            "Repeated attempts with different UUIDs might indicate suspicious activity.");
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return Mono.just(response);
+        }
+
+        // Has the request expired?
+        int compareResult = Instant.now().compareTo(target.getHmrcVatAuthorisationRequestExpiry());
+        if (compareResult > 0) {
+            logger.debug("HMRC authorisation window expired at: " + target.getHmrcVatAuthorisationRequestExpiry().toString());
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return Mono.just(response);
+        }
+
+        // Has the tenancy been suspended?
+        if (! target.getProviderStatus().equals(TenancyProviderStatus.ACTIVE)) {
+            logger.debug("Cannot authorise HMRC access for the tenancy as it is not ACTIVE: " + tenancyId + ", status=" + target.getProviderStatus());
+            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return Mono.just(response);
+        }
+
+        response = ResponseEntity.status(HttpStatus.OK).body(target.getView());
+        return Mono.just(response);
+    }
+
     /**
      * Attempt to get a JSON representation of a tenancy that requires confirmation by an
      * authorised contact.
      * @param tenancyId the identifier (as a hex string) of the tenancy
-     * @param action the action to confirm.  This is currently unnecessary as it is implied by the method name
-     *               but it will be retained for now, pending further development.  It is actually ignored right now
      * @param confirmUUID the nonce generated when the tenancy was created to ensure that only a recipient of the
      *                    confirmation URL can enact the confirmation.
      * @return A {@link uk.co.encity.tenancy.entity.TenancyView} represented as HAL-compliant JSON object
      */
-    @GetMapping(value = "/tenancy/{tenancyId}", params = { "action", "uuid" })
+    @GetMapping(value = "/tenancy/{tenancyId}/confirm", params = { "uuid" })
     public Mono<ResponseEntity<TenancyView>> getUnconfirmedTenancy(
         @PathVariable String tenancyId,
-        @RequestParam(value = "action") String action,
         @RequestParam(value = "uuid") String confirmUUID)
     {
         logger.debug("Received request to GET tenancy: " + tenancyId + " for confirmation purposes");

@@ -2,23 +2,14 @@ package uk.co.encity.tenancy.events;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 import uk.co.encity.tenancy.commands.PatchTenancyCommand;
 import uk.co.encity.tenancy.components.TenancyContact;
 import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.service.BeanUtil;
 import uk.co.encity.tenancy.service.ConfigProperties;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.UUID;
-
-import static java.lang.Integer.parseInt;
 
 @Getter
 public class HmrcVatAuthorisationRequestedEvent extends TenancyEvent {
@@ -28,7 +19,13 @@ public class HmrcVatAuthorisationRequestedEvent extends TenancyEvent {
     private TenancyContact authContact;
     private Instant expiry;
 
+    // Default constructor and setters are needed for de-serialization from the database
     public HmrcVatAuthorisationRequestedEvent() {};
+
+    public void setRequestUUID(UUID uuid) { this.requestUUID = uuid; }
+    public void setDomain(String d) { this.domain = d; }
+    public void setAuthContact(TenancyContact contact) { this.authContact = contact; }
+    public void setExpiry(Instant expiry) { this.expiry = expiry; }
 
     public HmrcVatAuthorisationRequestedEvent(PatchTenancyCommand cmd, Tenancy current) {
         super(
@@ -48,6 +45,7 @@ public class HmrcVatAuthorisationRequestedEvent extends TenancyEvent {
     public Tenancy applyToTenancy(Tenancy target) {
         target.setHmrcVatAuthorisationRequestPending(true);
         target.setHmrcVatAuthorisationRequestUUID(this.requestUUID);
+        target.setHmrcVatAuthorisationRequestExpiry(this.getExpiry());
         return target;
     }
 

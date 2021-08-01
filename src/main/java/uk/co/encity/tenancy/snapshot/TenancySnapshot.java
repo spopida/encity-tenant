@@ -46,6 +46,7 @@ public class TenancySnapshot {
     private boolean hmrcVatAuthorisationRequestPending;
     private UUID hmrcVatAuthorisationRequestUUID;
     private Instant hmrcVatLastAuthorisedAt;
+    private Instant hmrcVatAuthorisationRequestExpiry;
 
     /**
      * A {@link Map} of VAT Settings containing an entry for each company in the defaultPortfolio
@@ -78,6 +79,7 @@ public class TenancySnapshot {
         this.hmrcVatAuthorisationRequestPending = false;
         this.hmrcVatAuthorisationRequestUUID = null;
         this.hmrcVatLastAuthorisedAt = Instant.MIN;
+        this.hmrcVatAuthorisationRequestExpiry = null;
     }
 
     /**
@@ -108,7 +110,9 @@ public class TenancySnapshot {
     public boolean isHmrcVatAuthorisationRequestPending() { return this.hmrcVatAuthorisationRequestPending; }
     public UUID getHmrcVatAuthorisationRequestUUID() { return this.hmrcVatAuthorisationRequestUUID; }
     public Instant getHmrcVatLastAuthorisedAt() {
-        return (this.hmrcVatLastAuthorisedAt == null ? Instant.MIN : this.hmrcVatLastAuthorisedAt); }
+        return (this.hmrcVatLastAuthorisedAt == null ? Instant.MIN : this.hmrcVatLastAuthorisedAt);
+    }
+    public Instant getHmrcVatAuthorisationRequestExpiry() { return this.hmrcVatAuthorisationRequestExpiry; }
 
     @BsonIgnore public String getDomain() {
         String parts[] = this.authorisedContact.getEmailAddress().split("@");
@@ -138,4 +142,5 @@ public class TenancySnapshot {
     public void setHmrcVatLastAuthorisedAt(Instant time) {
         this.hmrcVatLastAuthorisedAt = ( time == null ? Instant.MIN : time );
     }
+    public void setHmrcVatAuthorisationRequestExpiry(Instant time) { this.hmrcVatAuthorisationRequestExpiry = time; }
 }

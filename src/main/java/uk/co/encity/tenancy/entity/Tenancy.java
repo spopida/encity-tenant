@@ -41,6 +41,7 @@ public class Tenancy {
     private boolean hmrcVatAuthorisationRequestPending;
     private UUID hmrcVatAuthorisationRequestUUID;
     private Instant hmrcVatLastAuthorisedAt;
+    private Instant hmrcVatAuthorisationRequestExpiry;
 
     public Tenancy() {}
 
@@ -64,7 +65,7 @@ public class Tenancy {
         t.hmrcVatAuthorisationRequestPending = snap.isHmrcVatAuthorisationRequestPending();
         t.hmrcVatAuthorisationRequestUUID = snap.getHmrcVatAuthorisationRequestUUID();
         t.hmrcVatLastAuthorisedAt = snap.getHmrcVatLastAuthorisedAt();
-
+        t.hmrcVatAuthorisationRequestExpiry = snap.getHmrcVatAuthorisationRequestExpiry();
         return t;
     }
 
@@ -88,7 +89,9 @@ public class Tenancy {
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
     public boolean isHmrcVatAuthorisationRequestPending() { return this.hmrcVatAuthorisationRequestPending; }
     public UUID getHmrcVatAuthorisationRequestUUID() { return this.hmrcVatAuthorisationRequestUUID; }
+    public String getHmrcVatAuthorisationRequestUUIDString() { return this.hmrcVatAuthorisationRequestUUID.toString(); }
     public Instant getHmrcVatLastAuthorisedAt() { return this.hmrcVatLastAuthorisedAt; }
+    public Instant getHmrcVatAuthorisationRequestExpiry() { return this.hmrcVatAuthorisationRequestExpiry; }
 
     /**
      * Get the derived (super) status - useful for simplifying some logic
@@ -136,6 +139,8 @@ public class Tenancy {
 
     public void setHmrcVatLastAuthorisedAt(Instant time) { this.hmrcVatLastAuthorisedAt = time; }
 
+    public void setHmrcVatAuthorisationRequestExpiry(Instant time) { this.hmrcVatAuthorisationRequestExpiry = time; }
+
     public TenancyView getView() {
 
         // Make sure to use getters, not instance vars (there could be logic in them)
@@ -158,7 +163,7 @@ public class Tenancy {
         view.isHmrcVatEnabled = this.isHmrcVatEnabled();
         view.isHmrcVatAuthorisationRequestPending = this.isHmrcVatAuthorisationRequestPending();
         view.lastHmrcAuthorisation = this.getHmrcVatLastAuthorisedAt().toString();
-
+        view.hmrcVatAuthorisationRequestExpiry = this.getHmrcVatAuthorisationRequestExpiry().toString();
         return view;
     }
 }
