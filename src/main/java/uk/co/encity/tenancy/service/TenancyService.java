@@ -9,7 +9,6 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 import uk.co.encity.tenancy.commands.PatchTenancyCommand;
 import uk.co.encity.tenancy.commands.PreConditionException;
-import uk.co.encity.tenancy.commands.TenancyCommand;
 import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.events.TenancyEvent;
 
@@ -79,7 +78,7 @@ public class TenancyService {
             case REJECT_TENANCY:
             case CHANGE_PORTFOLIO:
             case CHANGE_HMRC_VAT_ENABLEMENT:
-            case REQUEST_HMRC_VAT_AUTHORISATION:
+            case REQUEST_HMRC_AGENT_VAT_AUTHORISATION:
                 // No special actions (yet!)- the event will be saved (below)
                 break;
             default:

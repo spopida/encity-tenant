@@ -43,10 +43,10 @@ public class TenancySnapshot {
     private Instant confirmExpiryTime;
     private List<String> defaultPortfolio;
     private boolean hmrcVatEnabled;
-    private boolean hmrcVatAuthorisationRequestPending;
-    private UUID hmrcVatAuthorisationRequestUUID;
-    private Instant hmrcVatLastAuthorisedAt;
-    private Instant hmrcVatAuthorisationRequestExpiry;
+    private boolean hmrcVatAgentAuthorisationRequestPending;
+    private UUID hmrcVatAgentAuthorisationRequestUUID;
+    private Instant hmrcVatLastAgentAuthorisedAt;
+    private Instant hmrcVatAgentAuthorisationRequestExpiry;
 
     /**
      * A {@link Map} of VAT Settings containing an entry for each company in the defaultPortfolio
@@ -76,10 +76,10 @@ public class TenancySnapshot {
         this.defaultPortfolio = new ArrayList<String>();
         this.hmrcVatEnabled = false;
         this.portfolioDetails = null;
-        this.hmrcVatAuthorisationRequestPending = false;
-        this.hmrcVatAuthorisationRequestUUID = null;
-        this.hmrcVatLastAuthorisedAt = Instant.MIN;
-        this.hmrcVatAuthorisationRequestExpiry = null;
+        this.hmrcVatAgentAuthorisationRequestPending = false;
+        this.hmrcVatAgentAuthorisationRequestUUID = null;
+        this.hmrcVatLastAgentAuthorisedAt = Instant.MIN;
+        this.hmrcVatAgentAuthorisationRequestExpiry = null;
     }
 
     /**
@@ -107,12 +107,12 @@ public class TenancySnapshot {
     public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
-    public boolean isHmrcVatAuthorisationRequestPending() { return this.hmrcVatAuthorisationRequestPending; }
-    public UUID getHmrcVatAuthorisationRequestUUID() { return this.hmrcVatAuthorisationRequestUUID; }
-    public Instant getHmrcVatLastAuthorisedAt() {
-        return (this.hmrcVatLastAuthorisedAt == null ? Instant.MIN : this.hmrcVatLastAuthorisedAt);
+    public boolean isHmrcVatAgentAuthorisationRequestPending() { return this.hmrcVatAgentAuthorisationRequestPending; }
+    public UUID getHmrcVatAgentAuthorisationRequestUUID() { return this.hmrcVatAgentAuthorisationRequestUUID; }
+    public Instant getHmrcVatLastAgentAuthorisedAt() {
+        return (this.hmrcVatLastAgentAuthorisedAt == null ? Instant.MIN : this.hmrcVatLastAgentAuthorisedAt);
     }
-    public Instant getHmrcVatAuthorisationRequestExpiry() { return this.hmrcVatAuthorisationRequestExpiry; }
+    public Instant getHmrcVatAgentAuthorisationRequestExpiry() { return this.hmrcVatAgentAuthorisationRequestExpiry; }
 
     @BsonIgnore public String getDomain() {
         String parts[] = this.authorisedContact.getEmailAddress().split("@");
@@ -137,10 +137,10 @@ public class TenancySnapshot {
     public void setDefaultPortfolio(List<String> entityIds) { this.defaultPortfolio = entityIds; }
     public void setHmrcVatEnabled(boolean enabled) { this.hmrcVatEnabled = enabled; }
     public void setPortfolioDetails(Map<String, VatSettings> details) { this.portfolioDetails = details; }
-    public void setHmrcVatAuthorisationRequestPending(boolean pending) { this.hmrcVatAuthorisationRequestPending = pending; }
-    public void setHmrcVatAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAuthorisationRequestUUID = uuid; }
-    public void setHmrcVatLastAuthorisedAt(Instant time) {
-        this.hmrcVatLastAuthorisedAt = ( time == null ? Instant.MIN : time );
+    public void setHmrcVatAgentAuthorisationRequestPending(boolean pending) { this.hmrcVatAgentAuthorisationRequestPending = pending; }
+    public void setHmrcVatAgentAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAgentAuthorisationRequestUUID = uuid; }
+    public void setHmrcVatLastAgentAuthorisedAt(Instant time) {
+        this.hmrcVatLastAgentAuthorisedAt = ( time == null ? Instant.MIN : time );
     }
-    public void setHmrcVatAuthorisationRequestExpiry(Instant time) { this.hmrcVatAuthorisationRequestExpiry = time; }
+    public void setHmrcVatAgentAuthorisationRequestExpiry(Instant time) { this.hmrcVatAgentAuthorisationRequestExpiry = time; }
 }

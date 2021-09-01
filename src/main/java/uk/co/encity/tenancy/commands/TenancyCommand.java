@@ -20,9 +20,8 @@ public abstract class TenancyCommand {
         CANCEL_TENANCY_CLOSURE,
         CHANGE_PORTFOLIO,
         CHANGE_HMRC_VAT_ENABLEMENT,
-        REQUEST_HMRC_VAT_AUTHORISATION,
+        REQUEST_HMRC_AGENT_VAT_AUTHORISATION,
         AUTHORISE_HMRC_VAT,
-        CAPTURE_HMRC_VAT_ACCESS_TOKEN,
     }
 
     protected static final Map<String, TenancyTenantCommandType> ACTION_MAP;
@@ -33,9 +32,8 @@ public abstract class TenancyCommand {
         ACTION_MAP.put("reject", TenancyTenantCommandType.valueOf("REJECT_TENANCY"));
         ACTION_MAP.put( "change_portfolio", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO"));
         ACTION_MAP.put("change_hmrc_vat_enablement", TenancyTenantCommandType.valueOf("CHANGE_HMRC_VAT_ENABLEMENT"));
-        ACTION_MAP.put("request_hmrc_vat_authorisation", TenancyTenantCommandType.valueOf("REQUEST_HMRC_VAT_AUTHORISATION"));
+        ACTION_MAP.put("request_hmrc_vat_authorisation", TenancyTenantCommandType.valueOf("REQUEST_HMRC_AGENT_VAT_AUTHORISATION"));
         ACTION_MAP.put("authorise_hmrc_vat", TenancyTenantCommandType.valueOf("AUTHORISE_HMRC_VAT"));
-        ACTION_MAP.put("capture_hmrc_vat_access_token", TenancyTenantCommandType.valueOf("CAPTURE_HMRC_VAT_ACCESS_TOKEN"));
     }
 
     // Defines the commands that the Provider may perform on a Tenancy

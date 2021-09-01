@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -35,7 +34,6 @@ import uk.co.encity.tenancy.entity.TenancyProviderStatus;
 import uk.co.encity.tenancy.events.*;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -486,7 +484,7 @@ public class TenancyController {
         }
 
         // Is there a pending authorisation request?
-        if (! target.isHmrcVatAuthorisationRequestPending()) {
+        if (! target.isHmrcVatAgentAuthorisationRequestPending()) {
             logger.debug("Cannot authorise HMRC access for the tenancy as there is no pending request: " + tenancyId);
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
             return Mono.just(response);
@@ -495,16 +493,16 @@ public class TenancyController {
         // Does the UUID match?
         if (! target.getHmrcVatAuthorisationRequestUUIDString().equals(requestUUID)) {
             logger.warn(
-                    "Attempt to authorise HMRC access for a tenancy with mis-matched UUIDs.  Incoming: " + requestUUID + ", target=" + target.getHmrcVatAuthorisationRequestUUID() + ".\n" +
+                    "Attempt to authorise HMRC access for a tenancy with mis-matched UUIDs.  Incoming: " + requestUUID + ", target=" + target.getHmrcVatAgentAuthorisationRequestUUID() + ".\n" +
                             "Repeated attempts with different UUIDs might indicate suspicious activity.");
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
             return Mono.just(response);
         }
 
         // Has the request expired?
-        int compareResult = Instant.now().compareTo(target.getHmrcVatAuthorisationRequestExpiry());
+        int compareResult = Instant.now().compareTo(target.getHmrcVatAgentAuthorisationRequestExpiry());
         if (compareResult > 0) {
-            logger.debug("HMRC authorisation window expired at: " + target.getHmrcVatAuthorisationRequestExpiry().toString());
+            logger.debug("HMRC authorisation window expired at: " + target.getHmrcVatAgentAuthorisationRequestExpiry().toString());
             response = ResponseEntity.status(HttpStatus.CONFLICT).build();
             return Mono.just(response);
         }

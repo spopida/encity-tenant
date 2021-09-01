@@ -38,10 +38,10 @@ public class Tenancy {
     private List<String> defaultPortfolio;
     private boolean hmrcVatEnabled;
     private Map<String, VatSettings> portfolioDetails;
-    private boolean hmrcVatAuthorisationRequestPending;
-    private UUID hmrcVatAuthorisationRequestUUID;
-    private Instant hmrcVatLastAuthorisedAt;
-    private Instant hmrcVatAuthorisationRequestExpiry;
+    private boolean hmrcVatAgentAuthorisationRequestPending;
+    private UUID hmrcVatAgentAuthorisationRequestUUID;
+    private Instant hmrcVatLastAgentAuthorisedAt;
+    private Instant hmrcVatAgentAuthorisationRequestExpiry;
 
     public Tenancy() {}
 
@@ -62,10 +62,10 @@ public class Tenancy {
         t.domain = snap.getDomain();
         t.defaultPortfolio = snap.getDefaultPortfolio();
         t.hmrcVatEnabled = snap.isHmrcVatEnabled();
-        t.hmrcVatAuthorisationRequestPending = snap.isHmrcVatAuthorisationRequestPending();
-        t.hmrcVatAuthorisationRequestUUID = snap.getHmrcVatAuthorisationRequestUUID();
-        t.hmrcVatLastAuthorisedAt = snap.getHmrcVatLastAuthorisedAt();
-        t.hmrcVatAuthorisationRequestExpiry = snap.getHmrcVatAuthorisationRequestExpiry();
+        t.hmrcVatAgentAuthorisationRequestPending = snap.isHmrcVatAgentAuthorisationRequestPending();
+        t.hmrcVatAgentAuthorisationRequestUUID = snap.getHmrcVatAgentAuthorisationRequestUUID();
+        t.hmrcVatLastAgentAuthorisedAt = snap.getHmrcVatLastAgentAuthorisedAt();
+        t.hmrcVatAgentAuthorisationRequestExpiry = snap.getHmrcVatAgentAuthorisationRequestExpiry();
         return t;
     }
 
@@ -87,11 +87,11 @@ public class Tenancy {
     public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
-    public boolean isHmrcVatAuthorisationRequestPending() { return this.hmrcVatAuthorisationRequestPending; }
-    public UUID getHmrcVatAuthorisationRequestUUID() { return this.hmrcVatAuthorisationRequestUUID; }
-    public String getHmrcVatAuthorisationRequestUUIDString() { return this.hmrcVatAuthorisationRequestUUID.toString(); }
-    public Instant getHmrcVatLastAuthorisedAt() { return this.hmrcVatLastAuthorisedAt; }
-    public Instant getHmrcVatAuthorisationRequestExpiry() { return this.hmrcVatAuthorisationRequestExpiry; }
+    public boolean isHmrcVatAgentAuthorisationRequestPending() { return this.hmrcVatAgentAuthorisationRequestPending; }
+    public UUID getHmrcVatAgentAuthorisationRequestUUID() { return this.hmrcVatAgentAuthorisationRequestUUID; }
+    public String getHmrcVatAuthorisationRequestUUIDString() { return this.hmrcVatAgentAuthorisationRequestUUID.toString(); }
+    public Instant getHmrcVatLastAgentAuthorisedAt() { return this.hmrcVatLastAgentAuthorisedAt; }
+    public Instant getHmrcVatAgentAuthorisationRequestExpiry() { return this.hmrcVatAgentAuthorisationRequestExpiry; }
 
     /**
      * Get the derived (super) status - useful for simplifying some logic
@@ -133,13 +133,13 @@ public class Tenancy {
 
     public void setHmrcVatEnabled(boolean value) { this.hmrcVatEnabled = value; }
 
-    public void setHmrcVatAuthorisationRequestPending(boolean value) { this.hmrcVatAuthorisationRequestPending = value; }
+    public void setHmrcVatAgentAuthorisationRequestPending(boolean value) { this.hmrcVatAgentAuthorisationRequestPending = value; }
 
-    public void setHmrcVatAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAuthorisationRequestUUID = uuid; }
+    public void setHmrcVatAgentAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAgentAuthorisationRequestUUID = uuid; }
 
-    public void setHmrcVatLastAuthorisedAt(Instant time) { this.hmrcVatLastAuthorisedAt = time; }
+    public void setHmrcVatLastAgentAuthorisedAt(Instant time) { this.hmrcVatLastAgentAuthorisedAt = time; }
 
-    public void setHmrcVatAuthorisationRequestExpiry(Instant time) { this.hmrcVatAuthorisationRequestExpiry = time; }
+    public void setHmrcVatAgentAuthorisationRequestExpiry(Instant time) { this.hmrcVatAgentAuthorisationRequestExpiry = time; }
 
     public TenancyView getView() {
 
@@ -161,9 +161,18 @@ public class Tenancy {
         view.domain = this.getDomain();
         view.portfolioDetails = this.getPortfolioDetails();
         view.isHmrcVatEnabled = this.isHmrcVatEnabled();
-        view.isHmrcVatAuthorisationRequestPending = this.isHmrcVatAuthorisationRequestPending();
-        view.lastHmrcAuthorisation = this.getHmrcVatLastAuthorisedAt().toString();
-        view.hmrcVatAuthorisationRequestExpiry = this.getHmrcVatAuthorisationRequestExpiry().toString();
+        view.isHmrcVatAgentAuthorisationRequestPending = this.isHmrcVatAgentAuthorisationRequestPending();
+
+        // TODO: Improve string representation of dates
+        // Avoid NPEs
+        view.lastHmrcAgentAuthorisation = (this.getHmrcVatLastAgentAuthorisedAt() != null) ?
+                this.getHmrcVatLastAgentAuthorisedAt().toString() :
+                Instant.MIN.toString();
+
+        view.hmrcVatAgentAuthorisationRequestExpiry = (this.getHmrcVatAgentAuthorisationRequestExpiry() != null) ?
+                this.getHmrcVatAgentAuthorisationRequestExpiry().toString() :
+                Instant.now().toString();
+
         return view;
     }
 }

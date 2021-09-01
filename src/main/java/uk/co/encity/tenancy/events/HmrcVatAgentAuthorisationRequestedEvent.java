@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Getter
-public class HmrcVatAuthorisationRequestedEvent extends TenancyEvent {
+public class HmrcVatAgentAuthorisationRequestedEvent extends TenancyEvent {
 
     private UUID requestUUID;
     private String domain;
@@ -20,16 +20,16 @@ public class HmrcVatAuthorisationRequestedEvent extends TenancyEvent {
     private Instant expiry;
 
     // Default constructor and setters are needed for de-serialization from the database
-    public HmrcVatAuthorisationRequestedEvent() {};
+    public HmrcVatAgentAuthorisationRequestedEvent() {};
 
     public void setRequestUUID(UUID uuid) { this.requestUUID = uuid; }
     public void setDomain(String d) { this.domain = d; }
     public void setAuthContact(TenancyContact contact) { this.authContact = contact; }
     public void setExpiry(Instant expiry) { this.expiry = expiry; }
 
-    public HmrcVatAuthorisationRequestedEvent(PatchTenancyCommand cmd, Tenancy current) {
+    public HmrcVatAgentAuthorisationRequestedEvent(PatchTenancyCommand cmd, Tenancy current) {
         super(
-                TenancyEventType.HMRC_VAT_AUTHORISATION_REQUESTED,
+                TenancyEventType.HMRC_VAT_AGENT_AUTHORISATION_REQUESTED,
                 current.getTenancyId(),
                 current.getVersion() + 1,
                 cmd.getCommandId());
@@ -43,15 +43,15 @@ public class HmrcVatAuthorisationRequestedEvent extends TenancyEvent {
 
     @Override
     public Tenancy applyToTenancy(Tenancy target) {
-        target.setHmrcVatAuthorisationRequestPending(true);
-        target.setHmrcVatAuthorisationRequestUUID(this.requestUUID);
-        target.setHmrcVatAuthorisationRequestExpiry(this.getExpiry());
+        target.setHmrcVatAgentAuthorisationRequestPending(true);
+        target.setHmrcVatAgentAuthorisationRequestUUID(this.requestUUID);
+        target.setHmrcVatAgentAuthorisationRequestExpiry(this.getExpiry());
         return target;
     }
 
     @Override
     public void addSerializerToModule(SimpleModule module) {
-        module.addSerializer(this.getClass(), new HmrcVatAuthorisationRequestedEventSerializer());
+        module.addSerializer(this.getClass(), new HmrcVatAgentAuthorisationRequestedEventSerializer());
         return;
     }
 

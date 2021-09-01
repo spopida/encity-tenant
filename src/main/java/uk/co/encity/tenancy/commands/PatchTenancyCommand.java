@@ -12,7 +12,6 @@ import uk.co.encity.tenancy.entity.VatSettings;
 import uk.co.encity.tenancy.events.TenancyEvent;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -73,8 +72,8 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
                 boolean value = node.get("isHmrcVatEnabled").booleanValue();
                 patchCmd = new ChangeHmrcVatEnablementCommand(hexTenancyId, value);
                 break;
-            case REQUEST_HMRC_VAT_AUTHORISATION:
-                patchCmd = new RequestHmrcVatAuthorisationCommand(hexTenancyId);
+            case REQUEST_HMRC_AGENT_VAT_AUTHORISATION:
+                patchCmd = new RequestHmrcVatAgentAuthorisationCommand(hexTenancyId);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported command: " + cmdtype );

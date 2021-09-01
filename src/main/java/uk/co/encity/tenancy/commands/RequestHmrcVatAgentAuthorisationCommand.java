@@ -3,7 +3,7 @@ package uk.co.encity.tenancy.commands;
 import lombok.Getter;
 import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.entity.TenancyAvailabilityStatus;
-import uk.co.encity.tenancy.events.HmrcVatAuthorisationRequestedEvent;
+import uk.co.encity.tenancy.events.HmrcVatAgentAuthorisationRequestedEvent;
 import uk.co.encity.tenancy.events.TenancyEvent;
 
 /**
@@ -11,10 +11,10 @@ import uk.co.encity.tenancy.events.TenancyEvent;
  * will be recorded against a Tenancy and should trigger authorisation workflow
  */
 @Getter
-public class RequestHmrcVatAuthorisationCommand extends PatchTenancyCommand {
+public class RequestHmrcVatAgentAuthorisationCommand extends PatchTenancyCommand {
 
-    public RequestHmrcVatAuthorisationCommand(String hexTenancyId) {
-        super(TenancyTenantCommandType.REQUEST_HMRC_VAT_AUTHORISATION, hexTenancyId);
+    public RequestHmrcVatAgentAuthorisationCommand(String hexTenancyId) {
+        super(TenancyTenantCommandType.REQUEST_HMRC_AGENT_VAT_AUTHORISATION, hexTenancyId);
     }
 
     @Override
@@ -27,6 +27,6 @@ public class RequestHmrcVatAuthorisationCommand extends PatchTenancyCommand {
 
     @Override
     public TenancyEvent createTenancyEvent(Tenancy t) {
-        return new HmrcVatAuthorisationRequestedEvent(this, t);
+        return new HmrcVatAgentAuthorisationRequestedEvent(this, t);
     }
 }

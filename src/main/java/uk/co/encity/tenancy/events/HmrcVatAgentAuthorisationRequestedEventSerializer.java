@@ -6,14 +6,14 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
-public class HmrcVatAuthorisationRequestedEventSerializer extends StdSerializer<HmrcVatAuthorisationRequestedEvent> {
+public class HmrcVatAgentAuthorisationRequestedEventSerializer extends StdSerializer<HmrcVatAgentAuthorisationRequestedEvent> {
 
-    public HmrcVatAuthorisationRequestedEventSerializer() { this( null ); }
-    public HmrcVatAuthorisationRequestedEventSerializer(Class<HmrcVatAuthorisationRequestedEvent> t) { super(t); }
+    public HmrcVatAgentAuthorisationRequestedEventSerializer() { this( null ); }
+    public HmrcVatAgentAuthorisationRequestedEventSerializer(Class<HmrcVatAgentAuthorisationRequestedEvent> t) { super(t); }
 
     @Override
     public void serialize(
-            HmrcVatAuthorisationRequestedEvent event,
+            HmrcVatAgentAuthorisationRequestedEvent event,
             JsonGenerator jsonGenerator,
             SerializerProvider serializerProvider) throws IOException {
 
