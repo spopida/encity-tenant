@@ -36,6 +36,26 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
     public static PatchTenancyCommand getPatchTenancyCommand(
             @NonNull TenancyCommand.TenancyTenantCommandType cmdtype,
             String hexTenancyId,
+            String companyId,
+            JsonNode node) throws UnsupportedOperationException, JsonProcessingException {
+        PatchTenancyCommand patchCmd = null;
+
+        switch (cmdtype) {
+            case CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT:
+                JsonNode value = node.get("value");
+                boolean enabled = value.get("isVatEnabled").booleanValue();
+                patchCmd = new ChangePortfolioMemberVatEnablementCommand(hexTenancyId, companyId, enabled);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported command: " + cmdtype );
+        }
+
+        return patchCmd;
+    }
+
+    public static PatchTenancyCommand getPatchTenancyCommand(
+            @NonNull TenancyCommand.TenancyTenantCommandType cmdtype,
+            String hexTenancyId,
             JsonNode node) throws UnsupportedOperationException, JsonProcessingException {
         PatchTenancyCommand patchCmd = null;
 
@@ -67,10 +87,11 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
 
                 patchCmd = new ChangePortfolioCommand(hexTenancyId, entityIds, portDetails);
                 break;
-            case CHANGE_HMRC_VAT_ENABLEMENT:
+            case CHANGE_HMRC_AGENT_VAT_ENABLEMENT:
                 // Get the new value out of the JSON and create a new command
-                boolean value = node.get("isHmrcVatEnabled").booleanValue();
-                patchCmd = new ChangeHmrcVatEnablementCommand(hexTenancyId, value);
+                JsonNode value = node.get("value");
+                boolean enabled = value.get("isHmrcVatEnabled").booleanValue();
+                patchCmd = new ChangeHmrcAgentVatEnablementCommand(hexTenancyId, enabled);
                 break;
             case REQUEST_HMRC_AGENT_VAT_AUTHORISATION:
                 patchCmd = new RequestHmrcVatAgentAuthorisationCommand(hexTenancyId);

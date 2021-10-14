@@ -11,8 +11,9 @@
         "confirm",
         "reject",
         "change_portfolio",
-        "change_hmrc_vat_enablement",
-        "request_hmrc_vat_agent_authorisation",
+        "change_hmrc_agent_vat_enablement",
+        "change_portfolio_member_vat_enabled",
+        "request_hmrc_agent_vat_authorisation",
         "multi_patch"]
     },
     "details" : {

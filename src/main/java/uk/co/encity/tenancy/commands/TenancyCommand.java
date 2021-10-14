@@ -19,9 +19,10 @@ public abstract class TenancyCommand {
         REJECT_TENANCY,
         CANCEL_TENANCY_CLOSURE,
         CHANGE_PORTFOLIO,
-        CHANGE_HMRC_VAT_ENABLEMENT,
+        CHANGE_HMRC_AGENT_VAT_ENABLEMENT,
         REQUEST_HMRC_AGENT_VAT_AUTHORISATION,
-        AUTHORISE_HMRC_VAT,
+        AUTHORISE_HMRC_AGENT_VAT,
+        CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT
     }
 
     protected static final Map<String, TenancyTenantCommandType> ACTION_MAP;
@@ -31,9 +32,10 @@ public abstract class TenancyCommand {
         ACTION_MAP.put("confirm", TenancyTenantCommandType.valueOf("CONFIRM_TENANCY"));
         ACTION_MAP.put("reject", TenancyTenantCommandType.valueOf("REJECT_TENANCY"));
         ACTION_MAP.put( "change_portfolio", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO"));
-        ACTION_MAP.put("change_hmrc_vat_enablement", TenancyTenantCommandType.valueOf("CHANGE_HMRC_VAT_ENABLEMENT"));
-        ACTION_MAP.put("request_hmrc_vat_authorisation", TenancyTenantCommandType.valueOf("REQUEST_HMRC_AGENT_VAT_AUTHORISATION"));
-        ACTION_MAP.put("authorise_hmrc_vat", TenancyTenantCommandType.valueOf("AUTHORISE_HMRC_VAT"));
+        ACTION_MAP.put("change_hmrc_agent_vat_enablement", TenancyTenantCommandType.valueOf("CHANGE_HMRC_AGENT_VAT_ENABLEMENT"));
+        ACTION_MAP.put("request_hmrc_agent_vat_authorisation", TenancyTenantCommandType.valueOf("REQUEST_HMRC_AGENT_VAT_AUTHORISATION"));
+        ACTION_MAP.put("change_portfolio_member_vat_enabled", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT"));
+        ACTION_MAP.put("authorise_hmrc_agent_vat", TenancyTenantCommandType.valueOf("AUTHORISE_HMRC_AGENT_VAT"));
     }
 
     // Defines the commands that the Provider may perform on a Tenancy

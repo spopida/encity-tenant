@@ -6,14 +6,12 @@ import uk.co.encity.tenancy.entity.TenancyAvailabilityStatus;
 import uk.co.encity.tenancy.events.HmrcVatEnablementChangedEvent;
 import uk.co.encity.tenancy.events.TenancyEvent;
 
-import javax.sound.midi.Patch;
-
 @Getter
-public class ChangeHmrcVatEnablementCommand extends PatchTenancyCommand {
+public class ChangeHmrcAgentVatEnablementCommand extends PatchTenancyCommand {
     private boolean hmrcVatEnabled;
 
-    public ChangeHmrcVatEnablementCommand(String hexTenancyId, boolean hmrcVatEnabled) {
-        super(TenancyCommand.TenancyTenantCommandType.CHANGE_HMRC_VAT_ENABLEMENT, hexTenancyId);
+    public ChangeHmrcAgentVatEnablementCommand(String hexTenancyId, boolean hmrcVatEnabled) {
+        super(TenancyCommand.TenancyTenantCommandType.CHANGE_HMRC_AGENT_VAT_ENABLEMENT, hexTenancyId);
         this.hmrcVatEnabled = hmrcVatEnabled;
     }
 
