@@ -13,6 +13,9 @@
         "change_portfolio",
         "change_hmrc_agent_vat_enablement",
         "change_portfolio_member_vat_enabled",
+        "change_portfolio_member_vat_reg_no",
+        "change_portfolio_member_direct_auth",
+        "change_portfolio_member_direct_contact",
         "request_hmrc_agent_vat_authorisation",
         "multi_patch"]
     },

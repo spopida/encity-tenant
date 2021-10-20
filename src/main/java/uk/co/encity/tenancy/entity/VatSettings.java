@@ -7,13 +7,13 @@ import lombok.Setter;
 @Setter
 public class VatSettings {
     boolean vatEnabled;
-    String vatRegNbr;
+    String vatRegNo;
     boolean directAuthorisation;
     String directContactEmail;
 
     public VatSettings() {
         this.vatEnabled = false;
-        this.vatRegNbr = "";
+        this.vatRegNo = "";
         this.directAuthorisation = true;
         this.directContactEmail = "";
     }

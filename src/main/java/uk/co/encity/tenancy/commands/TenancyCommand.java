@@ -22,7 +22,10 @@ public abstract class TenancyCommand {
         CHANGE_HMRC_AGENT_VAT_ENABLEMENT,
         REQUEST_HMRC_AGENT_VAT_AUTHORISATION,
         AUTHORISE_HMRC_AGENT_VAT,
-        CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT
+        CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT,
+        CHANGE_PORTFOLIO_MEMBER_VAT_REG_NO,
+        CHANGE_PORTFOLIO_MEMBER_DIRECT_AUTH,
+        CHANGE_PORTFOLIO_MEMBER_DIRECT_CONTACT
     }
 
     protected static final Map<String, TenancyTenantCommandType> ACTION_MAP;
@@ -35,6 +38,9 @@ public abstract class TenancyCommand {
         ACTION_MAP.put("change_hmrc_agent_vat_enablement", TenancyTenantCommandType.valueOf("CHANGE_HMRC_AGENT_VAT_ENABLEMENT"));
         ACTION_MAP.put("request_hmrc_agent_vat_authorisation", TenancyTenantCommandType.valueOf("REQUEST_HMRC_AGENT_VAT_AUTHORISATION"));
         ACTION_MAP.put("change_portfolio_member_vat_enabled", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT"));
+        ACTION_MAP.put("change_portfolio_member_vat_reg_no", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO_MEMBER_VAT_REG_NO"));
+        ACTION_MAP.put("change_portfolio_member_direct_auth", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO_MEMBER_DIRECT_AUTH"));
+        ACTION_MAP.put("change_portfolio_member_direct_contact", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO_MEMBER_DIRECT_CONTACT"));
         ACTION_MAP.put("authorise_hmrc_agent_vat", TenancyTenantCommandType.valueOf("AUTHORISE_HMRC_AGENT_VAT"));
     }
 

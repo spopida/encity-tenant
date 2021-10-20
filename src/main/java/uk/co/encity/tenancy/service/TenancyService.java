@@ -80,6 +80,9 @@ public class TenancyService {
             case CHANGE_HMRC_AGENT_VAT_ENABLEMENT:
             case REQUEST_HMRC_AGENT_VAT_AUTHORISATION:
             case CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT:
+            case CHANGE_PORTFOLIO_MEMBER_DIRECT_AUTH:
+            case CHANGE_PORTFOLIO_MEMBER_VAT_REG_NO:
+            case CHANGE_PORTFOLIO_MEMBER_DIRECT_CONTACT:
                 // No special actions (yet!)- the event will be saved (below)
                 break;
             default:
