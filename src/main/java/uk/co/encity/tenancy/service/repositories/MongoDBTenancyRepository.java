@@ -62,6 +62,8 @@ public class MongoDBTenancyRepository implements TenancyRepository {
         ClassModel<PortfolioMemberVatRegNoChangedEvent> portfolioMemberVatRegNoChangedEventModel = ClassModel.builder(PortfolioMemberVatRegNoChangedEvent.class).enableDiscriminator(true).build();
         ClassModel<PortfolioMemberDirectAuthChangedEvent> portfolioMemberDirectAuthChangedEventModel = ClassModel.builder(PortfolioMemberDirectAuthChangedEvent.class).enableDiscriminator(true).build();
         ClassModel<PortfolioMemberDirectContactChangedEvent> portfolioMemberDirectContactChangedEventModel = ClassModel.builder(PortfolioMemberDirectContactChangedEvent.class).enableDiscriminator(true).build();
+        ClassModel<PortfolioMemberAddedEvent> portfolioMemberAddedEventClassModel = ClassModel.builder(PortfolioMemberAddedEvent.class).enableDiscriminator(true).build();
+        ClassModel<PortfolioMemberDeletedEvent> portfolioMemberDeletedEventClassModel = ClassModel.builder(PortfolioMemberDeletedEvent.class).enableDiscriminator(true).build();
         // As an alternative to the above, we could probably use @BsonDiscriminator annotations on the classes concerned.  But
         // I don't see that being any 'better' than the above, and at least we are keeping these concerns inside the
         // repository implementation
@@ -77,7 +79,9 @@ public class MongoDBTenancyRepository implements TenancyRepository {
                 portfolioMemberVatEnablementChangedEventModel,
                 portfolioMemberVatRegNoChangedEventModel,
                 portfolioMemberDirectAuthChangedEventModel,
-                portfolioMemberDirectContactChangedEventModel)
+                portfolioMemberDirectContactChangedEventModel,
+                portfolioMemberAddedEventClassModel,
+                portfolioMemberDeletedEventClassModel)
             .build();
 
         CodecRegistry pojoCodecRegistry = fromProviders(

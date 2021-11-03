@@ -2,16 +2,14 @@ package uk.co.encity.tenancy.commands;
 
 import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.entity.TenancyAvailabilityStatus;
-import uk.co.encity.tenancy.events.PortfolioMemberVatRegNoChangedEvent;
+import uk.co.encity.tenancy.events.PortfolioMemberDeletedEvent;
 import uk.co.encity.tenancy.events.TenancyEvent;
 
-public class ChangePortfolioMemberVatRegNoCommand extends PatchTenancyCommand {
-    private String vatRegNo;
+public class DeletePortfolioMemberCommand extends PatchTenancyCommand {
     private String companyId;
 
-    public ChangePortfolioMemberVatRegNoCommand(String hexTenancyId, String companyId, String vatRegNo) {
-        super(TenancyTenantCommandType.CHANGE_PORTFOLIO_MEMBER_VAT_REG_NO, hexTenancyId);
-        this.vatRegNo = vatRegNo;
+    public DeletePortfolioMemberCommand(String hexTenancyId, String companyId) {
+        super(TenancyTenantCommandType.DELETE_PORTFOLIO_MEMBER, hexTenancyId);
         this.companyId = companyId;
     }
 
@@ -24,6 +22,6 @@ public class ChangePortfolioMemberVatRegNoCommand extends PatchTenancyCommand {
 
     @Override
     public TenancyEvent createTenancyEvent(Tenancy t) {
-        return new PortfolioMemberVatRegNoChangedEvent( this, t, this.companyId, this.vatRegNo);
+        return new PortfolioMemberDeletedEvent(this, t, this.companyId);
     }
 }

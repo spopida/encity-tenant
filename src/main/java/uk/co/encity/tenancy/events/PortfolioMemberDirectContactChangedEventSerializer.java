@@ -25,5 +25,4 @@ public class PortfolioMemberDirectContactChangedEventSerializer extends StdSeria
         jsonGenerator.writeStringField("directContact", portfolioMemberDirectContactChangedEvent.getDirectContact());
         jsonGenerator.writeEndObject();
     }
-
 }

@@ -83,10 +83,12 @@ public class TenancyService {
             case CHANGE_PORTFOLIO_MEMBER_DIRECT_AUTH:
             case CHANGE_PORTFOLIO_MEMBER_VAT_REG_NO:
             case CHANGE_PORTFOLIO_MEMBER_DIRECT_CONTACT:
+            case ADD_PORTFOLIO_MEMBER:
+            case DELETE_PORTFOLIO_MEMBER:
                 // No special actions (yet!)- the event will be saved (below)
                 break;
             default:
-                throw new UnsupportedOperationException("Command not Supported: " + command.getCmdType().toString(), null);
+                throw new UnsupportedOperationException("Command not supported: " + command.getCmdType().toString(), null);
         }
 
         // Save an event

@@ -50,28 +50,43 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
             JsonNode node) throws UnsupportedOperationException, JsonProcessingException {
         PatchTenancyCommand patchCmd = null;
 
-        JsonNode value = null;
+        //JsonNode value = null;
+        JsonNode value = node.get("value");
+
+        String vatRegNo = null;
+        boolean directAuthorisation = false;
+        String directContactEmail = null;
 
         switch (cmdtype) {
             case CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT:
-                value = node.get("value");
-                boolean enabled = value.get("isVatEnabled").booleanValue();
+                //value = node.get("value");
+                boolean enabled = value.get("vatEnabled").booleanValue();
                 patchCmd = new ChangePortfolioMemberVatEnablementCommand(hexTenancyId, companyId, enabled);
                 break;
             case CHANGE_PORTFOLIO_MEMBER_VAT_REG_NO:
-                value = node.get("value");
-                String vatRegNo = value.get("vatRegistrationNumber").asText();
+                //value = node.get("value");
+                vatRegNo = value.get("vatRegNo").asText();
                 patchCmd = new ChangePortfolioMemberVatRegNoCommand(hexTenancyId, companyId, vatRegNo);
                 break;
             case CHANGE_PORTFOLIO_MEMBER_DIRECT_AUTH:
-                value = node.get("value");
-                boolean direct = value.get("vatUseDirectAuthorisation").booleanValue();
-                patchCmd = new ChangePortfolioMemberDirectAuthCommand(hexTenancyId, companyId, direct);
+                //value = node.get("value");
+                directAuthorisation = value.get("directAuthorisation").booleanValue();
+                patchCmd = new ChangePortfolioMemberDirectAuthCommand(hexTenancyId, companyId, directAuthorisation);
                 break;
             case CHANGE_PORTFOLIO_MEMBER_DIRECT_CONTACT:
-                value = node.get("value");
-                String contact = value.get("vatDirectAuthorisationContact").asText();
-                patchCmd = new ChangePortfolioMemberDirectContactCommand(hexTenancyId, companyId, contact);
+                //value = node.get("value");
+                directContactEmail = value.get("directContactEmail").asText();
+                patchCmd = new ChangePortfolioMemberDirectContactCommand(hexTenancyId, companyId, directContactEmail);
+                break;
+            case ADD_PORTFOLIO_MEMBER:
+                boolean vatEnabled = value.get("vatEnabled").asBoolean();
+                vatRegNo = value.get("vatRegNo").asText();
+                directAuthorisation = value.get("directAuthorisation").asBoolean();
+                directContactEmail = value.get("directContactEmail").asText();
+                patchCmd = new AddPortfolioMemberCommand(hexTenancyId, companyId, vatEnabled, vatRegNo, directAuthorisation, directContactEmail);
+                break;
+            case DELETE_PORTFOLIO_MEMBER:
+                patchCmd = new DeletePortfolioMemberCommand(hexTenancyId, companyId);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported command: " + cmdtype );
