@@ -4,16 +4,14 @@ import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 import uk.co.encity.tenancy.components.TenancyContact;
+import uk.co.encity.tenancy.entity.DirectAuthorisationRequest;
 import uk.co.encity.tenancy.entity.TenancyProviderStatus;
 import uk.co.encity.tenancy.entity.TenancyTenantStatus;
 import uk.co.encity.tenancy.entity.VatSettings;
 import uk.co.encity.tenancy.events.TenancyCreatedEvent;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * A 'raw' snapshot of a Tenancy at a point in time.  There are no derived fields
@@ -54,6 +52,13 @@ public class TenancySnapshot {
     private Map<String, VatSettings> portfolioDetails;
 
     /**
+     * A collection of {@link DirectAuthorisationRequest}s.  This structure is two-dimensional
+     * because a given company can (and usually will) have multiple requests, and there are multiple
+     * companies in the portfolio.
+     */
+    private Map<String, Map<UUID, DirectAuthorisationRequest>> directAuthorisationRequests;
+
+    /**
      * To be added - an Access Token structure (map?) for the different types of access needed
      * to different APIs.  This could get complex, but initially it will just need to hold
      * whatever tokens are needed for VAT purposes.
@@ -76,6 +81,7 @@ public class TenancySnapshot {
         this.defaultPortfolio = new ArrayList<String>();
         this.hmrcVatEnabled = false;
         this.portfolioDetails = null;
+        this.directAuthorisationRequests = new HashMap<String, Map<UUID, DirectAuthorisationRequest>>();
         this.hmrcVatAgentAuthorisationRequestPending = false;
         this.hmrcVatAgentAuthorisationRequestUUID = null;
         this.hmrcVatLastAgentAuthorisedAt = Instant.MIN;
@@ -104,9 +110,12 @@ public class TenancySnapshot {
     public TenancyProviderStatus getProviderStatus() { return this.providerStatus; }
     public UUID getConfirmUUID() { return this.confirmUUID; }
     public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
-    public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
+    //public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
+    public Map<String, Map<UUID, DirectAuthorisationRequest>> getDirectAuthorisationRequests() {
+        return this.directAuthorisationRequests;
+    }
     public boolean isHmrcVatAgentAuthorisationRequestPending() { return this.hmrcVatAgentAuthorisationRequestPending; }
     public UUID getHmrcVatAgentAuthorisationRequestUUID() { return this.hmrcVatAgentAuthorisationRequestUUID; }
     public Instant getHmrcVatLastAgentAuthorisedAt() {
@@ -137,6 +146,9 @@ public class TenancySnapshot {
     public void setDefaultPortfolio(List<String> entityIds) { this.defaultPortfolio = entityIds; }
     public void setHmrcVatEnabled(boolean enabled) { this.hmrcVatEnabled = enabled; }
     public void setPortfolioDetails(Map<String, VatSettings> details) { this.portfolioDetails = details; }
+    public void setDirectAuthorisationRequests(Map<String, Map<UUID, DirectAuthorisationRequest>> requests) {
+        this.directAuthorisationRequests = requests;
+    }
     public void setHmrcVatAgentAuthorisationRequestPending(boolean pending) { this.hmrcVatAgentAuthorisationRequestPending = pending; }
     public void setHmrcVatAgentAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAgentAuthorisationRequestUUID = uuid; }
     public void setHmrcVatLastAgentAuthorisedAt(Instant time) {

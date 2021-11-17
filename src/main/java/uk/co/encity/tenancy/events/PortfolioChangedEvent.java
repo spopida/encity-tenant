@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public class PortfolioChangedEvent extends TenancyEvent {
 
     private List<String> newPortfolio;
@@ -73,7 +74,7 @@ public class PortfolioChangedEvent extends TenancyEvent {
 
     @Override
     public Tenancy applyToTenancy(Tenancy target) {
-        target.setDefaultPortfolio(this.newPortfolio);
+        //target.setDefaultPortfolio(this.newPortfolio);
         target.setPortfolioDetails(this.newPortfolioDetails);
         return target;
     }

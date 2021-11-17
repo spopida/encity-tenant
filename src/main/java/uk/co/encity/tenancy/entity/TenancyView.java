@@ -20,7 +20,7 @@ public class TenancyView {
     public TenancyContact originalAdminUser;
     public String tenantStatus;
     public String domain;
-    public List<String> defaultPortfolio;
+    //public List<String> defaultPortfolio;
     public boolean isHmrcVatEnabled;
     public Map<String, VatSettings> portfolioDetails;
     public boolean isHmrcVatAgentAuthorisationRequestPending;

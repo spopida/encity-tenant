@@ -35,9 +35,10 @@ public class Tenancy {
     private UUID confirmUUID;
     private Instant confirmExpiryTime;
     private String domain;
-    private List<String> defaultPortfolio;
+    //private List<String> defaultPortfolio;
     private boolean hmrcVatEnabled;
     private Map<String, VatSettings> portfolioDetails;
+    private Map<String, Map<UUID, DirectAuthorisationRequest>> directAuthorisationRequests;
     private boolean hmrcVatAgentAuthorisationRequestPending;
     private UUID hmrcVatAgentAuthorisationRequestUUID;
     private Instant hmrcVatLastAgentAuthorisedAt;
@@ -60,7 +61,7 @@ public class Tenancy {
         t.confirmUUID = snap.getConfirmUUID();
         t.confirmExpiryTime = snap.getConfirmExpiryTime();
         t.domain = snap.getDomain();
-        t.defaultPortfolio = snap.getDefaultPortfolio();
+        //t.defaultPortfolio = snap.getDefaultPortfolio();
         t.hmrcVatEnabled = snap.isHmrcVatEnabled();
         t.hmrcVatAgentAuthorisationRequestPending = snap.isHmrcVatAgentAuthorisationRequestPending();
         t.hmrcVatAgentAuthorisationRequestUUID = snap.getHmrcVatAgentAuthorisationRequestUUID();
@@ -84,7 +85,7 @@ public class Tenancy {
     public String getConfirmUUIDString() { return this.confirmUUID.toString(); }
     public Instant getConfirmExpiryTime() { return this.confirmExpiryTime; }
     public String getDomain() { return this.domain; }
-    public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
+    //public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
     public boolean isHmrcVatAgentAuthorisationRequestPending() { return this.hmrcVatAgentAuthorisationRequestPending; }
@@ -127,7 +128,7 @@ public class Tenancy {
         this.tenantStatus = status;
     }
 
-    public void setDefaultPortfolio(List<String> newPortfolio) { this.defaultPortfolio = newPortfolio; }
+    //public void setDefaultPortfolio(List<String> newPortfolio) { this.defaultPortfolio = newPortfolio; }
 
     public void setPortfolioDetails(Map<String, VatSettings> portfolioDetails) { this.portfolioDetails = portfolioDetails; }
 
@@ -156,7 +157,7 @@ public class Tenancy {
         view.billingContact = this.getBillingContact();
         view.originalAdminUser = this.getOriginalAdminUser();
         view.tenantStatus = this.getTenantStatus().toString();
-        view.defaultPortfolio = this.getDefaultPortfolio();
+        //view.defaultPortfolio = this.getDefaultPortfolio();
         view.isHmrcVatEnabled = this.isHmrcVatEnabled();
         view.domain = this.getDomain();
         view.portfolioDetails = this.getPortfolioDetails();

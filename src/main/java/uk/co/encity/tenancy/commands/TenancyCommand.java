@@ -22,6 +22,7 @@ public abstract class TenancyCommand {
         CHANGE_HMRC_AGENT_VAT_ENABLEMENT,
         REQUEST_HMRC_AGENT_VAT_AUTHORISATION,
         AUTHORISE_HMRC_AGENT_VAT,
+        REQUEST_HMRC_VAT_DIRECT_AUTHORISATION,
         CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT,
         CHANGE_PORTFOLIO_MEMBER_VAT_REG_NO,
         CHANGE_PORTFOLIO_MEMBER_DIRECT_AUTH,
@@ -46,6 +47,7 @@ public abstract class TenancyCommand {
         ACTION_MAP.put("authorise_hmrc_agent_vat", TenancyTenantCommandType.valueOf("AUTHORISE_HMRC_AGENT_VAT"));
         ACTION_MAP.put("add_portfolio_member", TenancyTenantCommandType.valueOf("ADD_PORTFOLIO_MEMBER"));
         ACTION_MAP.put("delete_portfolio_member", TenancyTenantCommandType.valueOf("DELETE_PORTFOLIO_MEMBER"));
+        ACTION_MAP.put( "request_hmrc_vat_direct_authorisation", TenancyTenantCommandType.valueOf("REQUEST_HMRC_VAT_DIRECT_AUTHORISATION"));
     }
 
     // Defines the commands that the Provider may perform on a Tenancy
