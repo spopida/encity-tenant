@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
+@Deprecated
 public class HmrcVatAgentAuthorisationRequestedEventSerializer extends StdSerializer<HmrcVatAgentAuthorisationRequestedEvent> {
 
     public HmrcVatAgentAuthorisationRequestedEventSerializer() { this( null ); }

@@ -54,7 +54,6 @@ public class TenancyService {
      */
     // TODO: distinguish between tenancy-initiated transitions/states and provider-initiated ones
     public Tenancy applyCommand(PatchTenancyCommand command, SimpleModule module, ObjectMapper mapper) throws
-    //public Tenancy applyCommand(PatchTenancyCommand command) throws
             UnsupportedOperationException,
             IllegalArgumentException,
             PreConditionException,
@@ -72,6 +71,21 @@ public class TenancyService {
             throw new IllegalArgumentException(String.format("Tenancy with id %s does not exist", command.getHexTenancyId()), null);
         }
 
+        // TODO: Supporting REQUEST_HMRC_VAT_DIRECT_AUTHORISATION....
+        //
+        // - add it to the case statement below
+        // - when applying the event to the tenancy I'll have to build some retrieval logic... the event may have expired for example
+        // - update the tenancy with attributes relating to the LAST authorisation request only
+        // - meantime, publish the event
+        // - let the notification service pick up the event and email the contact
+        // - allow the contact to click on the link and visit a non-authenticated page to confirm authorisation
+        // - go to the HMRC site with a re-direct back to govbuddy - another non-authenticated page that accepts the token and stores it
+        // - this token handling will be done in the HMRC microservice
+        // - then we'll include retrieval of tokens as part of the hydration of a tenancy
+        // - and the dashboard should know whether it can retrieve VAT
+        // - when all that is working, go back and scrap the agency stuff - all authorisation will be direct
+
+
         // Perform the command
         switch (command.getCmdType()) {
             case CONFIRM_TENANCY:
@@ -85,6 +99,7 @@ public class TenancyService {
             case CHANGE_PORTFOLIO_MEMBER_DIRECT_CONTACT:
             case ADD_PORTFOLIO_MEMBER:
             case DELETE_PORTFOLIO_MEMBER:
+            case REQUEST_HMRC_VAT_AUTHZ:
                 // No special actions (yet!)- the event will be saved (below)
                 break;
             default:
@@ -96,16 +111,13 @@ public class TenancyService {
         this.repository.captureEvent(evt.getEventType(), evt);
 
         // Publish the event
-        //SimpleModule module = new SimpleModule();
         this.getLogger().debug("Sending message...");
         evt.addSerializerToModule(module);
         mapper.registerModule(module);
-        //this.mapper.registerModule(module);
 
         String jsonEvt;
 
         jsonEvt = mapper.writeValueAsString(evt);
-        //jsonEvt = this.getMapper().writeValueAsString(evt);
         this.getAmqpTemplate().convertAndSend(this.getTopicExchangeName(), evt.getRoutingKey(), jsonEvt);
 
         return theTenancy;

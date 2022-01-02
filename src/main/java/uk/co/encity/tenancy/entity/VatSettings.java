@@ -8,13 +8,15 @@ import lombok.Setter;
 public class VatSettings {
     boolean vatEnabled;
     String vatRegNo;
-    boolean directAuthorisation;
+    @Deprecated boolean directAuthorisation;
     String directContactEmail;
+    LastHmrcVatAuthzRequest lastAuthzRequest;
 
     public VatSettings() {
         this.vatEnabled = false;
         this.vatRegNo = "";
         this.directAuthorisation = true;
         this.directContactEmail = "";
+        this.lastAuthzRequest = null;
     }
 }

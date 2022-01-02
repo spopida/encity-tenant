@@ -7,6 +7,13 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import java.io.IOException;
 
+/**
+ * A class that deserializes an incoming PATCH command into an instance of a subclass of TenancyCommand
+ *
+ * Note that there is a distinction between commands at the aggregate root level, and commands relating to
+ * individual portfolio members; this distinction is based on whether a companyId is provided when
+ * the deserializer instance is constructed.
+ */
 public class PatchTenancyCommandDeserializer extends StdDeserializer<PatchTenancyCommand> {
 
     private String hexTenancyId;

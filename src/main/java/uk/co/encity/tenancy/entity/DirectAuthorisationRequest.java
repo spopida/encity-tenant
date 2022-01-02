@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+@Deprecated
 public class DirectAuthorisationRequest {
 
     public enum DirectAuthorisationRequestStatus {

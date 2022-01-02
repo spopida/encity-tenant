@@ -10,6 +10,7 @@ import uk.co.encity.tenancy.events.TenancyEvent;
  * The command has no extra detail associated with it (other than what is in the base class), but
  * will be recorded against a Tenancy and should trigger authorisation workflow
  */
+@Deprecated
 @Getter
 public class RequestHmrcVatAgentAuthorisationCommand extends PatchTenancyCommand {
 

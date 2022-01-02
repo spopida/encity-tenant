@@ -35,14 +35,15 @@ public class Tenancy {
     private UUID confirmUUID;
     private Instant confirmExpiryTime;
     private String domain;
-    //private List<String> defaultPortfolio;
     private boolean hmrcVatEnabled;
     private Map<String, VatSettings> portfolioDetails;
-    private Map<String, Map<UUID, DirectAuthorisationRequest>> directAuthorisationRequests;
-    private boolean hmrcVatAgentAuthorisationRequestPending;
-    private UUID hmrcVatAgentAuthorisationRequestUUID;
-    private Instant hmrcVatLastAgentAuthorisedAt;
-    private Instant hmrcVatAgentAuthorisationRequestExpiry;
+
+    @Deprecated private Map<String, Map<UUID, DirectAuthorisationRequest>> directAuthorisationRequests;
+
+    @Deprecated private boolean hmrcVatAgentAuthorisationRequestPending;
+    @Deprecated private UUID hmrcVatAgentAuthorisationRequestUUID;
+    @Deprecated private Instant hmrcVatLastAgentAuthorisedAt;
+    @Deprecated private Instant hmrcVatAgentAuthorisationRequestExpiry;
 
     public Tenancy() {}
 
@@ -61,7 +62,6 @@ public class Tenancy {
         t.confirmUUID = snap.getConfirmUUID();
         t.confirmExpiryTime = snap.getConfirmExpiryTime();
         t.domain = snap.getDomain();
-        //t.defaultPortfolio = snap.getDefaultPortfolio();
         t.hmrcVatEnabled = snap.isHmrcVatEnabled();
         t.hmrcVatAgentAuthorisationRequestPending = snap.isHmrcVatAgentAuthorisationRequestPending();
         t.hmrcVatAgentAuthorisationRequestUUID = snap.getHmrcVatAgentAuthorisationRequestUUID();
@@ -89,10 +89,10 @@ public class Tenancy {
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
     public boolean isHmrcVatAgentAuthorisationRequestPending() { return this.hmrcVatAgentAuthorisationRequestPending; }
-    public UUID getHmrcVatAgentAuthorisationRequestUUID() { return this.hmrcVatAgentAuthorisationRequestUUID; }
-    public String getHmrcVatAuthorisationRequestUUIDString() { return this.hmrcVatAgentAuthorisationRequestUUID.toString(); }
-    public Instant getHmrcVatLastAgentAuthorisedAt() { return this.hmrcVatLastAgentAuthorisedAt; }
-    public Instant getHmrcVatAgentAuthorisationRequestExpiry() { return this.hmrcVatAgentAuthorisationRequestExpiry; }
+    @Deprecated public UUID getHmrcVatAgentAuthorisationRequestUUID() { return this.hmrcVatAgentAuthorisationRequestUUID; }
+    @Deprecated public String getHmrcVatAuthorisationRequestUUIDString() { return this.hmrcVatAgentAuthorisationRequestUUID.toString(); }
+    @Deprecated public Instant getHmrcVatLastAgentAuthorisedAt() { return this.hmrcVatLastAgentAuthorisedAt; }
+    @Deprecated public Instant getHmrcVatAgentAuthorisationRequestExpiry() { return this.hmrcVatAgentAuthorisationRequestExpiry; }
 
     /**
      * Get the derived (super) status - useful for simplifying some logic
@@ -134,13 +134,13 @@ public class Tenancy {
 
     public void setHmrcVatEnabled(boolean value) { this.hmrcVatEnabled = value; }
 
-    public void setHmrcVatAgentAuthorisationRequestPending(boolean value) { this.hmrcVatAgentAuthorisationRequestPending = value; }
+    @Deprecated public void setHmrcVatAgentAuthorisationRequestPending(boolean value) { this.hmrcVatAgentAuthorisationRequestPending = value; }
 
-    public void setHmrcVatAgentAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAgentAuthorisationRequestUUID = uuid; }
+    @Deprecated public void setHmrcVatAgentAuthorisationRequestUUID(UUID uuid) { this.hmrcVatAgentAuthorisationRequestUUID = uuid; }
 
-    public void setHmrcVatLastAgentAuthorisedAt(Instant time) { this.hmrcVatLastAgentAuthorisedAt = time; }
+    @Deprecated public void setHmrcVatLastAgentAuthorisedAt(Instant time) { this.hmrcVatLastAgentAuthorisedAt = time; }
 
-    public void setHmrcVatAgentAuthorisationRequestExpiry(Instant time) { this.hmrcVatAgentAuthorisationRequestExpiry = time; }
+    @Deprecated public void setHmrcVatAgentAuthorisationRequestExpiry(Instant time) { this.hmrcVatAgentAuthorisationRequestExpiry = time; }
 
     public TenancyView getView() {
 

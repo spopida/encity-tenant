@@ -1,5 +1,6 @@
 package uk.co.encity.tenancy.entity;
 
+@Deprecated
 public class DirectAuthorisationRequestException extends Exception {
 
     public DirectAuthorisationRequestException(String errorMsg) {

@@ -225,7 +225,7 @@ public class TenancyController {
     {
         logger.debug("Attempting a multi-patch");
 
-        // Iterate through the array of patches and call a single patch.  Gather up the responses so that we can
+        // Iterate through the array of patches and call a single patch.  Gather the responses so that we can
         // decide what the aggregate response should be at the end
 
         ResponseEntity<TenancyView> response = null;
@@ -386,12 +386,22 @@ public class TenancyController {
             return Mono.just(response);
         }
 
+        JSONObject thePatch = new JSONObject(new JSONTokener(body));
+        JSONObject value = thePatch.getJSONObject("value");
+        String companyId = value.getString("companyNumber");
+
         // De-serialise the command into an object and store it
         PatchTenancyCommand cmd = null;
 
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(PatchTenancyCommand.class, new PatchTenancyCommandDeserializer(id));
+
+        if (companyId == null) {
+            module.addDeserializer(PatchTenancyCommand.class, new PatchTenancyCommandDeserializer(id));
+        } else {
+            module.addDeserializer(PatchTenancyCommand.class, new PatchTenancyCommandDeserializer(id, companyId));
+        }
+
         mapper.registerModule(module);
 
         try {
@@ -410,7 +420,6 @@ public class TenancyController {
         Tenancy t = null;
         try {
             t = this.service.applyCommand(cmd, module, mapper);
-            //t = this.service.applyCommand(cmd);
         } catch (UnsupportedOperationException | IOException e) {
             logger.error(e.getMessage());
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

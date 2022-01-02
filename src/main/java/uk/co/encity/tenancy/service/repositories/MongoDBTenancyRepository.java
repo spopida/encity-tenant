@@ -64,6 +64,7 @@ public class MongoDBTenancyRepository implements TenancyRepository {
         ClassModel<PortfolioMemberDirectContactChangedEvent> portfolioMemberDirectContactChangedEventModel = ClassModel.builder(PortfolioMemberDirectContactChangedEvent.class).enableDiscriminator(true).build();
         ClassModel<PortfolioMemberAddedEvent> portfolioMemberAddedEventClassModel = ClassModel.builder(PortfolioMemberAddedEvent.class).enableDiscriminator(true).build();
         ClassModel<PortfolioMemberDeletedEvent> portfolioMemberDeletedEventClassModel = ClassModel.builder(PortfolioMemberDeletedEvent.class).enableDiscriminator(true).build();
+        ClassModel<HmrcVatAuthzRequestedEvent> hmrcVatAuthzRequestedEventClassModel = ClassModel.builder(HmrcVatAuthzRequestedEvent.class).enableDiscriminator(true).build();
         // As an alternative to the above, we could probably use @BsonDiscriminator annotations on the classes concerned.  But
         // I don't see that being any 'better' than the above, and at least we are keeping these concerns inside the
         // repository implementation
@@ -81,7 +82,8 @@ public class MongoDBTenancyRepository implements TenancyRepository {
                 portfolioMemberDirectAuthChangedEventModel,
                 portfolioMemberDirectContactChangedEventModel,
                 portfolioMemberAddedEventClassModel,
-                portfolioMemberDeletedEventClassModel)
+                portfolioMemberDeletedEventClassModel,
+                hmrcVatAuthzRequestedEventClassModel)
             .build();
 
         CodecRegistry pojoCodecRegistry = fromProviders(
@@ -129,6 +131,7 @@ public class MongoDBTenancyRepository implements TenancyRepository {
         //TODO: eventType param is redundant
         MongoCollection<TenancyEvent> events = db.getCollection("tenancy_events", TenancyEvent.class);
         events.insertOne(event);
+
     }
 
     /**
@@ -148,6 +151,8 @@ public class MongoDBTenancyRepository implements TenancyRepository {
             for (TenancyEvent e : events) {
                 t = e.updateTenancy(t);
             }
+
+            // TODO: This is where we should store a new snapshot, if the number of events is too big
         }
 
         return t;

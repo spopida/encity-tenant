@@ -7,6 +7,7 @@ import uk.co.encity.tenancy.events.HmrcVatEnablementChangedEvent;
 import uk.co.encity.tenancy.events.TenancyEvent;
 
 @Getter
+@Deprecated
 public class ChangeHmrcAgentVatEnablementCommand extends PatchTenancyCommand {
     private boolean hmrcVatEnabled;
 

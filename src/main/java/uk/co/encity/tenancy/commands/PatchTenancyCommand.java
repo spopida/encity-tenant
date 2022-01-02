@@ -59,22 +59,18 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
 
         switch (cmdtype) {
             case CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT:
-                //value = node.get("value");
                 boolean enabled = value.get("vatEnabled").booleanValue();
                 patchCmd = new ChangePortfolioMemberVatEnablementCommand(hexTenancyId, companyId, enabled);
                 break;
             case CHANGE_PORTFOLIO_MEMBER_VAT_REG_NO:
-                //value = node.get("value");
                 vatRegNo = value.get("vatRegNo").asText();
                 patchCmd = new ChangePortfolioMemberVatRegNoCommand(hexTenancyId, companyId, vatRegNo);
                 break;
             case CHANGE_PORTFOLIO_MEMBER_DIRECT_AUTH:
-                //value = node.get("value");
                 directAuthorisation = value.get("directAuthorisation").booleanValue();
                 patchCmd = new ChangePortfolioMemberDirectAuthCommand(hexTenancyId, companyId, directAuthorisation);
                 break;
             case CHANGE_PORTFOLIO_MEMBER_DIRECT_CONTACT:
-                //value = node.get("value");
                 directContactEmail = value.get("directContactEmail").asText();
                 patchCmd = new ChangePortfolioMemberDirectContactCommand(hexTenancyId, companyId, directContactEmail);
                 break;
@@ -87,6 +83,12 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
                 break;
             case DELETE_PORTFOLIO_MEMBER:
                 patchCmd = new DeletePortfolioMemberCommand(hexTenancyId, companyId);
+                break;
+            case REQUEST_HMRC_VAT_AUTHZ:
+                String companyName = value.get("companyName").asText();
+                String contactEmail = value.get("contactEmail").asText();
+                String domain = value.get("tenancyDomain").asText();
+                patchCmd = new RequestHmrcVatAuthz(hexTenancyId, companyId, companyName, contactEmail, domain);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported command: " + cmdtype );

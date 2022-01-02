@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
+@Deprecated
 public class ChangePortfolioCommand extends PatchTenancyCommand {
 
     private List<String> entityIds;
