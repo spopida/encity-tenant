@@ -2,6 +2,7 @@ package uk.co.encity.tenancy.events;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.Getter;
+import lombok.Setter;
 import uk.co.encity.tenancy.commands.PatchTenancyCommand;
 import uk.co.encity.tenancy.entity.DirectAuthorisationRequest;
 import uk.co.encity.tenancy.entity.LastHmrcVatAuthzRequest;
@@ -15,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Getter
+@Setter
 public class HmrcVatAuthzRequestedEvent extends TenancyEvent {
 
     private UUID requestUUID;
@@ -27,8 +29,11 @@ public class HmrcVatAuthzRequestedEvent extends TenancyEvent {
     // Default constructor and setters are needed for de-serialization from the database
     public HmrcVatAuthzRequestedEvent() {};
 
+    /*
     public void setRequestUUID(UUID uuid) { this.requestUUID = uuid; }
     public void setExpiry(Instant expiry) { this.expiry = expiry; }
+
+     */
 
     public HmrcVatAuthzRequestedEvent(
             PatchTenancyCommand cmd,

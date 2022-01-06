@@ -23,9 +23,9 @@ public class TenancyView {
     //public List<String> defaultPortfolio;
     public boolean isHmrcVatEnabled;
     public Map<String, VatSettings> portfolioDetails;
-    public boolean isHmrcVatAgentAuthorisationRequestPending;
-    public String lastHmrcAgentAuthorisation;
-    public String hmrcVatAgentAuthorisationRequestExpiry;
+    @Deprecated public boolean isHmrcVatAgentAuthorisationRequestPending;
+    @Deprecated public String lastHmrcAgentAuthorisation;
+    @Deprecated public String hmrcVatAgentAuthorisationRequestExpiry;
 
     protected TenancyView() {
         ;

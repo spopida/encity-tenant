@@ -28,16 +28,17 @@ import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 import uk.co.encity.tenancy.commands.*;
-import uk.co.encity.tenancy.entity.Tenancy;
-import uk.co.encity.tenancy.entity.TenancyView;
-import uk.co.encity.tenancy.entity.TenancyTenantStatus;
-import uk.co.encity.tenancy.entity.TenancyProviderStatus;
+import uk.co.encity.tenancy.entity.*;
 import uk.co.encity.tenancy.events.*;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A RESTful web controller that supports actions relating to Tenancies.  A Tenancy is an organisation with one or more
@@ -359,6 +360,9 @@ public class TenancyController {
         UriComponentsBuilder uriBuilder)
     {
         // TODO: REFACTOR - validatePatchBody, handlePatch
+
+        // TODO: Upgrade to use TenancyResponse instead of TenancyView
+
         logger.debug("Attempting to patch a tenancy from request body:\n" + body);
         ResponseEntity<TenancyView> response = null;
 
@@ -441,61 +445,70 @@ public class TenancyController {
         return Mono.just(response);
     }
 
-    @GetMapping(value = "/tenancy/{tenancyId}/authorise-hmrc", params = { "uuid" })
-    public Mono<ResponseEntity<TenancyView>> getTenancyForHmrcAuthorisation(
+    @GetMapping(value = "/tenancy/{tenancyId}/authorise-hmrc-vat", params = { "uuid" })
+    public Mono<ResponseEntity<TenancyResponse>> getTenancyForHmrcAuthorisation(
         @PathVariable String tenancyId,
         @RequestParam(value = "uuid") String requestUUID)
     {
         logger.debug("Received request to GET tenancy: " + tenancyId + " for HMRC authorisation purposes");
-        ResponseEntity<TenancyView> response = null;
+
+        // In this method we return a response that wraps the TenancyView so that we can provide
+        // a bespoke error message if necessary.  Other controller methods should be upgraded to take
+        // this approach
+        ResponseEntity<TenancyResponse> response = null;
 
         // retrieve the (logical) tenancy entity
         Tenancy target = null;
         try {
             target = this.tenancyRepo.getTenancy(tenancyId);
             if (target == null) {
-                response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                String msg = "Invalid tenancy id in URL: " + tenancyId;
+                response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new TenancyResponse(msg,null));
                 return Mono.just(response);
             }
         } catch (IOException e) {
             String msg = "Unexpected failure reading tenancy with id: " + tenancyId;
             logger.error(msg);
-            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new TenancyResponse(msg,null));
             return Mono.just(response);
         }
 
-        // Is there a pending authorisation request?
-        if (! target.isHmrcVatAgentAuthorisationRequestPending()) {
-            logger.debug("Cannot authorise HMRC access for the tenancy as there is no pending request: " + tenancyId);
-            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+        VatSettings matchingPortfolioMember = target.getPortfolioMemberForHmrcVatAuthz(requestUUID);
+
+        LastHmrcVatAuthzRequest lastRequest = null;
+        if (matchingPortfolioMember == null) {
+            String msg = "Cannot authorise HMRC access as there is no pending request that matches the URL";
+            logger.debug(msg);
+            response = ResponseEntity.status(HttpStatus.CONFLICT).body(new TenancyResponse(msg,null));
             return Mono.just(response);
+        } else {
+            lastRequest = matchingPortfolioMember.getLastAuthzRequest();
         }
 
-        // Does the UUID match?
-        if (! target.getHmrcVatAuthorisationRequestUUIDString().equals(requestUUID)) {
-            logger.warn(
-                    "Attempt to authorise HMRC access for a tenancy with mis-matched UUIDs.  Incoming: " + requestUUID + ", target=" + target.getHmrcVatAgentAuthorisationRequestUUID() + ".\n" +
-                            "Repeated attempts with different UUIDs might indicate suspicious activity.");
-            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
-            return Mono.just(response);
-        }
-
-        // Has the request expired?
-        int compareResult = Instant.now().compareTo(target.getHmrcVatAgentAuthorisationRequestExpiry());
-        if (compareResult > 0) {
-            logger.debug("HMRC authorisation window expired at: " + target.getHmrcVatAgentAuthorisationRequestExpiry().toString());
-            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+        // Then check whether it is still PENDING
+        LastHmrcVatAuthzRequest.LastHmrcVatAuthzRequestStatus lrStatus = lastRequest.getStatus();
+        if (lrStatus != LastHmrcVatAuthzRequest.LastHmrcVatAuthzRequestStatus.PENDING) {
+            String msg = null;
+            // TODO: Improve this message!
+            if (lrStatus == LastHmrcVatAuthzRequest.LastHmrcVatAuthzRequestStatus.EXPIRED) {
+                msg = "Cannot authorise HMRC access as the request has EXPIRED";
+            } else {
+                msg = "Cannot authorise HMRC access as the request has already been actioned";
+            }
+            logger.debug(msg);
+            response = ResponseEntity.status(HttpStatus.CONFLICT).body(new TenancyResponse(msg,null));
             return Mono.just(response);
         }
 
         // Has the tenancy been suspended?
         if (! target.getProviderStatus().equals(TenancyProviderStatus.ACTIVE)) {
-            logger.debug("Cannot authorise HMRC access for the tenancy as it is not ACTIVE: " + tenancyId + ", status=" + target.getProviderStatus());
-            response = ResponseEntity.status(HttpStatus.CONFLICT).build();
+            String msg = "Cannot authorise HMRC access for the tenancy as it is not ACTIVE: " + tenancyId + ", status=" + target.getProviderStatus();
+            logger.debug(msg);
+            response = ResponseEntity.status(HttpStatus.CONFLICT).body(new TenancyResponse(msg,null));
             return Mono.just(response);
         }
 
-        response = ResponseEntity.status(HttpStatus.OK).body(target.getView());
+        response = ResponseEntity.status(HttpStatus.OK).body(new TenancyResponse(target.getView()));
         return Mono.just(response);
     }
 

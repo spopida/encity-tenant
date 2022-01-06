@@ -1,7 +1,10 @@
 package uk.co.encity.tenancy.entity;
 
 import org.bson.types.ObjectId;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 import uk.co.encity.tenancy.components.TenancyContact;
@@ -11,6 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class Tenancy {
 
@@ -88,7 +92,7 @@ public class Tenancy {
     //public List<String> getDefaultPortfolio() { return this.defaultPortfolio; }
     public boolean isHmrcVatEnabled() { return this.hmrcVatEnabled; }
     public Map<String, VatSettings> getPortfolioDetails() { return this.portfolioDetails; }
-    public boolean isHmrcVatAgentAuthorisationRequestPending() { return this.hmrcVatAgentAuthorisationRequestPending; }
+    @Deprecated public boolean isHmrcVatAgentAuthorisationRequestPending() { return this.hmrcVatAgentAuthorisationRequestPending; }
     @Deprecated public UUID getHmrcVatAgentAuthorisationRequestUUID() { return this.hmrcVatAgentAuthorisationRequestUUID; }
     @Deprecated public String getHmrcVatAuthorisationRequestUUIDString() { return this.hmrcVatAgentAuthorisationRequestUUID.toString(); }
     @Deprecated public Instant getHmrcVatLastAgentAuthorisedAt() { return this.hmrcVatLastAgentAuthorisedAt; }
@@ -141,6 +145,29 @@ public class Tenancy {
     @Deprecated public void setHmrcVatLastAgentAuthorisedAt(Instant time) { this.hmrcVatLastAgentAuthorisedAt = time; }
 
     @Deprecated public void setHmrcVatAgentAuthorisationRequestExpiry(Instant time) { this.hmrcVatAgentAuthorisationRequestExpiry = time; }
+
+    public VatSettings getPortfolioMemberForHmrcVatAuthz(String uuid) {
+
+        // Get all portfolio members as a stream, filter out those whose LastHmrcVatAuthzRequest doesn't have a matching
+        // uuid, and we shold be left with a single member.  If we have nothing, then we return null - none of them match
+        // the uuid
+        List<VatSettings> vatSettingsList =
+            this.getPortfolioDetails().entrySet().stream()
+                .filter(entry -> {
+                    LastHmrcVatAuthzRequest lastRequest = entry.getValue().getLastAuthzRequest();
+                    if (lastRequest != null) {
+                        return (lastRequest.getRequestUUID().toString().equals(uuid));
+                    } else { return false; }
+                })
+                .map(entry -> entry.getValue())
+                .collect(Collectors.toList());
+
+        if (! vatSettingsList.isEmpty()) {
+            return vatSettingsList.get(0);
+        } else {
+            return null;
+        }
+    }
 
     public TenancyView getView() {
 
