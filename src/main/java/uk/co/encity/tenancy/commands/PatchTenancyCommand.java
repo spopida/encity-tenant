@@ -88,7 +88,11 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
                 String companyName = value.get("companyName").asText();
                 String contactEmail = value.get("contactEmail").asText();
                 String domain = value.get("tenancyDomain").asText();
-                patchCmd = new RequestHmrcVatAuthz(hexTenancyId, companyId, companyName, contactEmail, domain);
+                patchCmd = new RequestHmrcVatAuthzCommand(hexTenancyId, companyId, companyName, contactEmail, domain);
+                break;
+            case REJECT_HMRC_VAT_AUTHZ:
+                String uuid = value.get("authzRequestUuid").asText();
+                patchCmd = new RejectHmrcVatAuthzCommand(hexTenancyId, uuid);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported command: " + cmdtype );

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.Getter;
 import lombok.Setter;
 import uk.co.encity.tenancy.commands.PatchTenancyCommand;
-import uk.co.encity.tenancy.entity.DirectAuthorisationRequest;
 import uk.co.encity.tenancy.entity.LastHmrcVatAuthzRequest;
 import uk.co.encity.tenancy.entity.Tenancy;
 import uk.co.encity.tenancy.entity.VatSettings;
@@ -61,7 +60,7 @@ public class HmrcVatAuthzRequestedEvent extends TenancyEvent {
     public Tenancy applyToTenancy(Tenancy target) {
         VatSettings vs = target.getPortfolioDetails().get(this.companyNumber);
         if (vs != null) {
-            vs.setLastAuthzRequest(new LastHmrcVatAuthzRequest(this));
+            vs.setLastHmrcVatAuthzRequest(new LastHmrcVatAuthzRequest(this));
         }
         return target;
     }

@@ -10,13 +10,13 @@ public class VatSettings {
     String vatRegNo;
     @Deprecated boolean directAuthorisation;
     String directContactEmail;
-    LastHmrcVatAuthzRequest lastAuthzRequest;
+    LastHmrcVatAuthzRequest lastHmrcVatAuthzRequest;
 
     public VatSettings() {
         this.vatEnabled = false;
         this.vatRegNo = "";
         this.directAuthorisation = true;
         this.directContactEmail = "";
-        this.lastAuthzRequest = null;
+        this.lastHmrcVatAuthzRequest = null;
     }
 }

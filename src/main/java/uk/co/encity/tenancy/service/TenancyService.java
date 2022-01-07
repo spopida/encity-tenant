@@ -100,6 +100,7 @@ public class TenancyService {
             case ADD_PORTFOLIO_MEMBER:
             case DELETE_PORTFOLIO_MEMBER:
             case REQUEST_HMRC_VAT_AUTHZ:
+            case REJECT_HMRC_VAT_AUTHZ:
                 // No special actions (yet!)- the event will be saved (below)
                 break;
             default:

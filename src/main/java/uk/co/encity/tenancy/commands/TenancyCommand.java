@@ -23,6 +23,8 @@ public abstract class TenancyCommand {
         @Deprecated REQUEST_HMRC_AGENT_VAT_AUTHORISATION,
         @Deprecated  AUTHORISE_HMRC_AGENT_VAT,
         REQUEST_HMRC_VAT_AUTHZ,
+        REJECT_HMRC_VAT_AUTHZ,
+        //CONFIRM_HMRC_VAT_AUTHZ,
         CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT,
         CHANGE_PORTFOLIO_MEMBER_VAT_REG_NO,
         CHANGE_PORTFOLIO_MEMBER_DIRECT_AUTH,
@@ -44,6 +46,7 @@ public abstract class TenancyCommand {
         ACTION_MAP.put("add_portfolio_member", TenancyTenantCommandType.valueOf("ADD_PORTFOLIO_MEMBER"));
         ACTION_MAP.put("delete_portfolio_member", TenancyTenantCommandType.valueOf("DELETE_PORTFOLIO_MEMBER"));
         ACTION_MAP.put( "request_hmrc_vat_authz", TenancyTenantCommandType.valueOf("REQUEST_HMRC_VAT_AUTHZ"));
+        ACTION_MAP.put("reject_hmrc_vat_authz", TenancyTenantCommandType.REJECT_HMRC_VAT_AUTHZ);
 
         // Deprecated - assuming we get rid of agent actions
         ACTION_MAP.put( "change_portfolio", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO"));

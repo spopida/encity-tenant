@@ -1,10 +1,7 @@
 package uk.co.encity.tenancy.entity;
 
 import org.bson.types.ObjectId;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
-import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 import uk.co.encity.tenancy.components.TenancyContact;
@@ -154,7 +151,7 @@ public class Tenancy {
         List<VatSettings> vatSettingsList =
             this.getPortfolioDetails().entrySet().stream()
                 .filter(entry -> {
-                    LastHmrcVatAuthzRequest lastRequest = entry.getValue().getLastAuthzRequest();
+                    LastHmrcVatAuthzRequest lastRequest = entry.getValue().getLastHmrcVatAuthzRequest();
                     if (lastRequest != null) {
                         return (lastRequest.getRequestUUID().toString().equals(uuid));
                     } else { return false; }

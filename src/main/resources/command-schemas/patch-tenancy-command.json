@@ -18,6 +18,7 @@
         "change_portfolio_member_direct_contact",
         "request_hmrc_agent_vat_authorisation",
         "request_hmrc_vat_authz",
+        "reject_hmrc_vat_authz",
         "add_portfolio_member",
         "delete_portfolio_member",
         "multi_patch"]

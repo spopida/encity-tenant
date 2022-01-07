@@ -10,7 +10,6 @@ import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONString;
 import org.json.JSONTokener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -34,11 +33,7 @@ import uk.co.encity.tenancy.events.*;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A RESTful web controller that supports actions relating to Tenancies.  A Tenancy is an organisation with one or more
@@ -482,7 +477,7 @@ public class TenancyController {
             response = ResponseEntity.status(HttpStatus.CONFLICT).body(new TenancyResponse(msg,null));
             return Mono.just(response);
         } else {
-            lastRequest = matchingPortfolioMember.getLastAuthzRequest();
+            lastRequest = matchingPortfolioMember.getLastHmrcVatAuthzRequest();
         }
 
         // Then check whether it is still PENDING

@@ -11,14 +11,14 @@ import uk.co.encity.tenancy.events.TenancyEvent;
  * the HMRC VAT records for the company, on behalf of the tenant
  */
 @Getter
-public class RequestHmrcVatAuthz extends PatchTenancyCommand {
+public class RequestHmrcVatAuthzCommand extends PatchTenancyCommand {
 
     private String companyNumber;
     private String companyName;
     private String contactEmail;
     private String domain;
 
-    public RequestHmrcVatAuthz(
+    public RequestHmrcVatAuthzCommand(
             String hexTenancyId,
             String companyNumber,
             String companyName,
@@ -38,7 +38,7 @@ public class RequestHmrcVatAuthz extends PatchTenancyCommand {
         }
 
         // There's a bit more we could do here, like...
-        // - check that the company no is in the portfolio
+        // - check that the company number is in the portfolio
         // - make sure the contact email matches
         // - make sure the domain matches the tenancy
         // - make sure VAT is enabled
