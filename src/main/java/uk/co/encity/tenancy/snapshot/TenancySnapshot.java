@@ -56,6 +56,7 @@ public class TenancySnapshot {
      * because a given company can (and usually will) have multiple requests, and there are multiple
      * companies in the portfolio.
      */
+    @Deprecated
     private Map<String, Map<UUID, DirectAuthorisationRequest>> directAuthorisationRequests;
 
     /**

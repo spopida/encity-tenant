@@ -56,6 +56,7 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
         String vatRegNo = null;
         boolean directAuthorisation = false;
         String directContactEmail = null;
+        String uuid = null;
 
         switch (cmdtype) {
             case CHANGE_PORTFOLIO_MEMBER_VAT_ENABLEMENT:
@@ -91,8 +92,15 @@ public abstract class PatchTenancyCommand extends TenancyCommand {
                 patchCmd = new RequestHmrcVatAuthzCommand(hexTenancyId, companyId, companyName, contactEmail, domain);
                 break;
             case REJECT_HMRC_VAT_AUTHZ:
-                String uuid = value.get("authzRequestUuid").asText();
+                uuid = value.get("authzRequestUuid").asText();
                 patchCmd = new RejectHmrcVatAuthzCommand(hexTenancyId, uuid);
+                break;
+            case CONFIRM_HMRC_VAT_AUTHZ:
+                String companyNumber = value.get("companyNumber").asText();
+                String authzCode = value.get("authzCode").asText();
+                uuid = value.get("authzRequestUuid").asText();
+                String redirectUri = value.get("redirectUri").asText();
+                patchCmd = new ConfirmHmrcVatAuthzCommand(hexTenancyId, companyNumber, authzCode, uuid, redirectUri);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported command: " + cmdtype );

@@ -16,7 +16,7 @@ public class HmrcVatAuthzRequestedEventSerializer extends StdSerializer<HmrcVatA
     public void serialize(
             HmrcVatAuthzRequestedEvent event,
             JsonGenerator jsonGenerator,
-            SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+            SerializerProvider serializerProvider) throws IOException {
 
         jsonGenerator.writeStartObject();
         event.writeCommonJson(jsonGenerator);

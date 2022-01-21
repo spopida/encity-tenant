@@ -23,7 +23,8 @@ public class RequestHmrcVatAuthzCommand extends PatchTenancyCommand {
             String companyNumber,
             String companyName,
             String contactEmail,
-            String domain) {
+            String domain)
+    {
         super(TenancyTenantCommandType.REQUEST_HMRC_VAT_AUTHZ, hexTenancyId);
         this.companyNumber = companyNumber;
         this.companyName = companyName;
