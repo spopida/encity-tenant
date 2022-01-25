@@ -105,7 +105,9 @@ public class TenancyService {
         String jsonEvt;
 
         jsonEvt = mapper.writeValueAsString(evt);
+        this.getLogger().debug("Serialized event: " + jsonEvt);
         this.getAmqpTemplate().convertAndSend(this.getTopicExchangeName(), evt.getRoutingKey(), jsonEvt);
+        this.getLogger().debug("Message sent using routing key: " + evt.getRoutingKey());
 
         return theTenancy;
     }

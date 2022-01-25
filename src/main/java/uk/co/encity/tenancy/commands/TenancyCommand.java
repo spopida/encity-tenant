@@ -46,7 +46,8 @@ public abstract class TenancyCommand {
         ACTION_MAP.put("add_portfolio_member", TenancyTenantCommandType.valueOf("ADD_PORTFOLIO_MEMBER"));
         ACTION_MAP.put("delete_portfolio_member", TenancyTenantCommandType.valueOf("DELETE_PORTFOLIO_MEMBER"));
         ACTION_MAP.put( "request_hmrc_vat_authz", TenancyTenantCommandType.valueOf("REQUEST_HMRC_VAT_AUTHZ"));
-        ACTION_MAP.put("reject_hmrc_vat_authz", TenancyTenantCommandType.REJECT_HMRC_VAT_AUTHZ);
+        ACTION_MAP.put("reject_hmrc_vat_authz", TenancyTenantCommandType.valueOf("REJECT_HMRC_VAT_AUTHZ"));
+        ACTION_MAP.put("confirm_hmrc_vat_authz", TenancyTenantCommandType.valueOf("CONFIRM_HMRC_VAT_AUTHZ"));
 
         // Deprecated - assuming we get rid of agent actions
         ACTION_MAP.put( "change_portfolio", TenancyTenantCommandType.valueOf("CHANGE_PORTFOLIO"));
